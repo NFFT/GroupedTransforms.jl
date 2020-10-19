@@ -11,3 +11,6 @@ NFFT3 = "53104703-03e8-40a5-ab01-812303a44cae"
 
 [compat]
 julia = "1"
+Combinatorics = "1"
+LinearMaps = "2"
+NFFT3 = "1"
