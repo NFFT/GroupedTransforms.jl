@@ -1,0 +1,13 @@
+name = "GroupedTransforms"
+uuid = "76248ec8-aa36-4347-850f-ece2d673bc9f"
+authors = ["Michael Schmischke <michael.schmischke@math.tu-chemnitz.de> and Felix Bartel <felix.bartel@math.tu-chemnitz.de>"]
+version = "1.0.0"
+
+[deps]
+Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
+Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
+LinearMaps = "7a12625a-238d-50fd-b39a-03d52299707e"
+NFFT3 = "53104703-03e8-40a5-ab01-812303a44cae"
+
+[compat]
+julia = "1"
