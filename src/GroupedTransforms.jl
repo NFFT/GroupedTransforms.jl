@@ -1,4 +1,4 @@
-module GroupedTransformations
+module GroupedTransforms
 
 using LinearMaps
 using Distributed
