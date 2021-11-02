@@ -104,7 +104,7 @@ Overloads to * notation in order to achieve `f = F*fhat`
 
 # Input
 * `F` - a GroupedTransform object
-* `fhat` - a GroupedCoefficients object with the same setting
+* `fhat` - GroupedCoefficients object with the same setting
 
 # Output
  * `f` - a vector
