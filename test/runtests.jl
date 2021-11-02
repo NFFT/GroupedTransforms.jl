@@ -1,7 +1,7 @@
 using GroupedTransforms
 using Test
 
-tests = ["test_grouped_nfft", "test_grouped_nfct"]
+tests = ["nfct_ds", "nfct_U", "nfft_ds", "nfft_U"]
 
 for t in tests
     include("$(t).jl")

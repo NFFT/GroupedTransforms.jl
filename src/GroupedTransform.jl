@@ -174,7 +174,7 @@ function Base.:getindex(F::GroupedTransform, u::Vector)
         error("This term is not contained")
     else
         if F.system == "cos"
-            function trafo(fhat::Vector{Float64})::Vector{Float64}
+            function trafo_cos(fhat::Vector{Float64})::Vector{Float64}
                 return remotecall_fetch(
                     F.setting[idx][:mode].trafo,
                     F.transforms[idx][1],
@@ -183,7 +183,7 @@ function Base.:getindex(F::GroupedTransform, u::Vector)
                 )
             end
 
-            function adjoint(f::Vector{Float64})::Vector{Float64}
+            function adjoint_cos(f::Vector{Float64})::Vector{Float64}
                 return remotecall_fetch(
                     F.setting[idx][:mode].adjoint,
                     F.transforms[idx][1],
@@ -194,9 +194,9 @@ function Base.:getindex(F::GroupedTransform, u::Vector)
 
             N = prod(F.setting[idx][:bandwidths] .- 1)
             M = size(F.X, 2)
-            return LinearMap{Float64}(trafo, adjoint, M, N)
+            return LinearMap{Float64}(trafo_cos, adjoint_cos, M, N)
         elseif F.system == "exp"
-            function trafo(fhat::Vector{ComplexF64})::Vector{ComplexF64}
+            function trafo_exp(fhat::Vector{ComplexF64})::Vector{ComplexF64}
                 return remotecall_fetch(
                     F.setting[idx][:mode].trafo,
                     F.transforms[idx][1],
@@ -205,7 +205,7 @@ function Base.:getindex(F::GroupedTransform, u::Vector)
                 )
             end
 
-            function adjoint(f::Vector{ComplexF64})::Vector{ComplexF64}
+            function adjoint_exp(f::Vector{ComplexF64})::Vector{ComplexF64}
                 return remotecall_fetch(
                     F.setting[idx][:mode].adjoint,
                     F.transforms[idx][1],
@@ -216,7 +216,7 @@ function Base.:getindex(F::GroupedTransform, u::Vector)
 
             N = prod(F.setting[idx][:bandwidths] .- 1)
             M = size(F.X, 2)
-            return LinearMap{ComplexF64}(trafo, adjoint, M, N)
+            return LinearMap{ComplexF64}(trafo_exp, adjoint_exp, M, N)
         end
     end
 end

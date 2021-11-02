@@ -19,6 +19,24 @@ for i = 1:length(F.setting)
     fhat[u] = rand(Float64, size(fhat[u]))
 end
 
+# arithmetic tests ###################################################
+
+ghat = GroupedCoefficients(F.setting)
+for i = 1:length(F.setting)
+    u = F.setting[i][:u]
+    ghat[u] = rand(Float64, size(ghat[u]))
+end
+
+fhat[1]
+fhat[1] = 1.0
+2 * fhat
+fhat + ghat
+fhat - ghat
+F[[1, 2]]
+GroupedTransforms.set_data!(fhat, ghat.data)
+
+###
+
 f = F * fhat
 
 # compute transform without NFFT #####################################
