@@ -4,7 +4,12 @@ makedocs(
     sitename = "GroupedTransforms.jl",
     format = Documenter.HTML(; prettyurls = false),
     modules = [GroupedTransforms],
-    pages = ["Home" => "index.md", "About" => "about.md"],
+    pages = [
+        "Home" => "index.md",
+        "About" => "about.md",
+        "GroupedCoefficients" => "coeffs.md",
+        "GroupedTransform" => "transform.md",
+    ],
 )
 
 deploydocs(

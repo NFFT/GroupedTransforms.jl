@@ -4,15 +4,17 @@ using LinearMaps
 using Distributed
 using Combinatorics
 
-"""
-`U = function get_superposition_set(d, ds)`
+@doc raw"""
+    get_superposition_set(d, ds)
 
-# Input:
- * `d::Int` ... dimension
- * `ds::Int` ... superposition dimension
+This function returns ``U^{(d,ds)} = \{  \pmb u \subset \{1,2,\dots,d\} : |\pmb u| \leq ds \}``.
 
-# Output:
- * `U::Vector{Vector{Int}}` ... all sets of dimensions with at most ds dimensions
+# Input
+* `d` - spatial dimension
+* `ds` - superposition threshold
+
+# Output
+* `U` - all sets of subset of coordinate indices of order at most ds
 """
 function get_superposition_set(d::Int, ds::Int)::Vector{Vector{Int}}
     return [[[]]; collect(powerset(1:d, 1, ds))]

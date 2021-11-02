@@ -120,10 +120,12 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::Int64
 
     plan = NFCT(Tuple(bandwidths), M)
     plan.x = X
+    factor_sqrt = sqrt(2)^d
 
     function trafo(fhat::Vector{Float64})::Vector{Float64}
         plan.fhat = zeros(Float64, length(mask))
         plan.fhat[mask] = fhat
+        plan.fhat .*= factor_sqrt
         nfct_trafo(plan)
         return plan.f
     end
@@ -131,7 +133,7 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::Int64
     function adjoint(f::Vector{Float64})::Vector{Float64}
         plan.f = f
         nfct_adjoint(plan)
-        return plan.fhat[mask]
+        return (factor_sqrt .* plan.fhat[mask])
     end
 
     N = prod(bandwidths .- 1)
@@ -141,7 +143,18 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::Int64
     return idx
 end
 
+function get_multiplier(n::Vector{Int})::Float64
+    abs_support = sum(n .!= 0)
+    if abs_support == 0
+        return 1.0
+    else
+        return sqrt(2)^abs_support
+    end
+end
 
+function get_multiplier(n::Int)::Float64
+    return (n == 0) ? 1.0 : sqrt(2)
+end
 
 """
 `F = get_matrix(bandwidths, X)
@@ -168,10 +181,13 @@ function get_matrix(bandwidths::Vector{Int}, X::Array{Float64})::Array{Float64}
 
     if d == 1
         freq = nfct_index_set_without_zeros(bandwidths)
-        F_direct = [cos.(2 * pi * (x .* n)) for x in vec(X), n in freq]
+        F_direct = [get_multiplier(n) * cos.(2 * pi * (x .* n)) for x in vec(X), n in freq]
     else
         freq = nfct_index_set_without_zeros(bandwidths)
-        F_direct = [prod(cos.(2 * pi * (x .* n))) for x in eachcol(X), n in eachcol(freq)]
+        F_direct = [
+            get_multiplier(collect(n)) * prod(cos.(2 * pi * (x .* n))) for
+            x in eachcol(X), n in eachcol(freq)
+        ]
     end
     return F_direct
 end
