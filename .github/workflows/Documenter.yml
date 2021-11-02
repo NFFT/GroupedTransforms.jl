@@ -2,8 +2,9 @@ name: Documenter
 
 on:
   push:
-    branches: [main]
-    tags: [v*]
+    branches:
+      - main
+    tags: '*'
   pull_request:
 
 jobs:
