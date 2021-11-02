@@ -1,10 +1,7 @@
-export NFCTtools
-
 module NFCTtools
 
 using NFFT3
 using LinearMaps
-
 
 """
 `N = datalength(bandwidths)`
@@ -88,10 +85,10 @@ function nfct_mask(bandwidths::Vector{Int})::BitArray{1}
 end
 
 """
-trafos::Vector{LinearMap{ComplexF64}}
+trafos::Vector{LinearMap{Float64}}
 This vector is local to the module on every worker.  It stores the transformations in order to access them later.
 """
-trafos = Vector{LinearMap{ComplexF64}}(undef,1)
+trafos = Vector{LinearMap{Float64}}(undef,1)
 
 """
 `F = get_transform(bandwidths, X)
@@ -101,7 +98,7 @@ trafos = Vector{LinearMap{ComplexF64}}(undef,1)
  * `X::Array{Float64}` ... nodes in |u| x M format
 
 # Output:
- * `F::LinearMap{ComplexF64}` ... Linear map of the Fourier-transform implemented by the NFCT
+ * `F::LinearMap{Float64}` ... Linear map of the Fourier-transform implemented by the NFCT
 """
 function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::Int64
   if size(X, 1) == 1
@@ -114,8 +111,8 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::Int64
 
   if bandwidths == []
     idx = length(trafos)
-    trafos[idx] = LinearMap{ComplexF64}(fhat -> fill(fhat[1], M), f -> [sum(f)], M, 1)
-    append!( trafos, Vector{LinearMap{ComplexF64}}(undef,1) )
+    trafos[idx] = LinearMap{Float64}(fhat -> fill(fhat[1], M), f -> [sum(f)], M, 1)
+    append!( trafos, Vector{LinearMap{Float64}}(undef,1) )
     return idx
   end
 
@@ -124,23 +121,23 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::Int64
   plan = NFCT(Tuple(bandwidths), M)
   plan.x = X
 
-  function trafo(fhat::Vector{ComplexF64})::Vector{ComplexF64}
+  function trafo(fhat::Vector{Float64})::Vector{Float64}
     plan.fhat = zeros(Float64, length(mask))
-    plan.fhat[mask] = convert.(Float64, fhat)
-    NFFT3.trafo(plan)
-    return convert.(ComplexF64,plan.f)
+    plan.fhat[mask] = fhat
+    nfct_trafo(plan)
+    return plan.f
   end
 
-  function adjoint(f::Vector{ComplexF64})::Vector{ComplexF64}
-    plan.f = convert.(Float64,f)
-    NFFT3.adjoint(plan)
-    return convert.(ComplexF64,plan.fhat[mask])
+  function adjoint(f::Vector{Float64})::Vector{Float64}
+    plan.f = f
+    nfct_adjoint(plan)
+    return plan.fhat[mask]
   end
 
   N = prod(bandwidths.-1)
   idx = length(trafos)
-  trafos[idx] = LinearMap{ComplexF64}(trafo, adjoint, M, N)
-  append!( trafos, Vector{LinearMap{ComplexF64}}(undef,1) )
+  trafos[idx] = LinearMap{Float64}(trafo, adjoint, M, N)
+  append!( trafos, Vector{LinearMap{Float64}}(undef,1) )
   return idx
 end
 
@@ -156,7 +153,7 @@ end
 # Output:
  * `F::Array{ComplexF64}` ... Matrix of the Fourier-transform
 """
-function get_matrix(bandwidths::Vector{Int}, X::Array{Float64})::Array{ComplexF64}
+function get_matrix(bandwidths::Vector{Int}, X::Array{Float64})::Array{Float64}
   if size(X, 1) == 1
     X = vec(X)
     d = 1
@@ -166,7 +163,7 @@ function get_matrix(bandwidths::Vector{Int}, X::Array{Float64})::Array{ComplexF6
   end
 
   if bandwidths == []
-    return ones(ComplexF64, M, 1)
+    return ones(Float64, M, 1)
   end
 
   if d == 1

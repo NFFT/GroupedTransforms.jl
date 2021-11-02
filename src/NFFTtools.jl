@@ -1,11 +1,7 @@
-export NFFTtools
-
 module NFFTtools
 
 using LinearMaps
 using NFFT3
-
-NUM_THREADS = 3
 
 """
 `N = datalength(bandwidths)`
@@ -119,8 +115,6 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::Int64
     append!( trafos, Vector{LinearMap{ComplexF64}}(undef,1) )
     return idx
   end
-
-  #NFFT3.set_num_threads(NUM_THREADS)
   
   mask = nfft_mask(bandwidths)
   N = Tuple(bandwidths)
@@ -130,13 +124,13 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::Int64
   function trafo(fhat::Vector{ComplexF64})::Vector{ComplexF64}
     plan.fhat = zeros( ComplexF64, length(mask) )
     plan.fhat[mask] = fhat
-    NFFT3.trafo(plan)
+    nfft_trafo(plan)
     return plan.f
   end
 
   function adjoint(f::Vector{ComplexF64})::Vector{ComplexF64}
     plan.f = f
-    NFFT3.adjoint(plan)
+    nfft_adjoint(plan)
     return plan.fhat[mask]
   end
 

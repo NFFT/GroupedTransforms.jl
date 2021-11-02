@@ -23,9 +23,9 @@ uuid = "7a12625a-238d-50fd-b39a-03d52299707e"
 version = "2.7.0"
 
 [[NFFT3]]
-git-tree-sha1 = "d288fe9b4e34cfc413919be57fa122e8f6cc1172"
+git-tree-sha1 = "b5d764c79f3453bf03ac364a8d8d29e3a305c17d"
 uuid = "53104703-03e8-40a5-ab01-812303a44cae"
-version = "1.0.0"
+version = "1.1.0"
 
 [[Random]]
 deps = ["Serialization"]
