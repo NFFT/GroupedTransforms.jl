@@ -10,14 +10,14 @@ A struct to hold complex coefficients belonging to indices in a grouped index se
 ```
 
 # Fields
-* `setting` - uniquely describes the setting such as the bandlimits ``N_{\pmb u}``, see also [`get_setting(system::String,d::Int,ds::Int,N::Vector{Int})::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}`](@ref) and [`get_setting(system::String,U::Vector{Vector{Int}},N::Vector{Int})::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}`](@ref)
-* `data` - the vector of coefficients 
+* `setting::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}` - uniquely describes the setting such as the bandlimits ``N_{\pmb u}``, see also [`get_setting(system::String,d::Int,ds::Int,N::Vector{Int})::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}`](@ref) and [`get_setting(system::String,U::Vector{Vector{Int}},N::Vector{Int})::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}`](@ref)
+* `data::Union{Vector{ComplexF64},Nothing}` - the vector of coefficients 
 
 # Constructor
-    GroupedCoefficientsComplex( setting::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}, data::Union{Vector{ComplexF64},Nothing} = nothing ) 
+    GroupedCoefficientsComplex( setting, data = nothing ) 
 
 # Additional Constructor
-    GroupedCoefficients( setting::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}, data::Union{Vector{ComplexF64},Nothing} = nothing ) 
+    GroupedCoefficients( setting, data = nothing ) 
 """
 struct GroupedCoefficientsComplex <: GroupedCoefficients
     setting::Vector{
@@ -54,14 +54,14 @@ A struct to hold real valued coefficients belonging to indices in a grouped inde
 ```
 
 # Fields
-* `setting` - uniquely describes the setting such as the bandlimits ``N_{\pmb u}``, see also [`get_setting(system::String,d::Int,ds::Int,N::Vector{Int})::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}`](@ref) and [`get_setting(system::String,U::Vector{Vector{Int}},N::Vector{Int})::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}`](@ref)
-* `data` - the vector of coefficients 
+* `setting::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}` - uniquely describes the setting such as the bandlimits ``N_{\pmb u}``, see also [`get_setting(system::String,d::Int,ds::Int,N::Vector{Int})::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}`](@ref) and [`get_setting(system::String,U::Vector{Vector{Int}},N::Vector{Int})::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}`](@ref)
+* `data::Union{Vector{Float64},Nothing}` - the vector of coefficients 
 
 # Constructor
-    GroupedCoefficientsReal( setting::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}, data::Union{Vector{Float64},Nothing} = nothing ) 
+    GroupedCoefficientsReal( setting, data = nothing ) 
 
 # Additional Constructor
-    GroupedCoefficients( setting::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}, data::Union{Vector{Float64},Nothing} = nothing ) 
+    GroupedCoefficients( setting, data = nothing ) 
 """
 struct GroupedCoefficientsReal <: GroupedCoefficients
     setting::Vector{
@@ -89,7 +89,9 @@ struct GroupedCoefficientsReal <: GroupedCoefficients
 end
 
 function GroupedCoefficients(
-    setting,
+    setting::Vector{
+        NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}},
+    },
     data::Union{Vector{ComplexF64},Vector{Float64},Nothing} = nothing,
 )
     if setting[1][:mode] == NFFTtools
@@ -100,15 +102,11 @@ function GroupedCoefficients(
 end
 
 @doc raw"""
-    Base.:getindex( fhat, u )
+    fhat::GroupedCoefficients[u::Vector{Int}]
 
-This function overloads getindex of GroupedCoefficients such that you can do `fhat[[1,3]]` to obtain the basis coefficients of the corresponding ANOVA term (or the corresponding support)
-
-# Input
-* `fhat` - a GroupedCoefficients object
-* `u` - a vector of integers
+This function overloads getindex of GroupedCoefficients such that you can do `fhat[[1,3]]` to obtain the basis coefficients of the corresponding ANOVA term defined by `u`.
 """
-function Base.:getindex(fhat::GroupedCoefficients, u::Vector{<:Integer})::Vector{<:Number}
+function Base.:getindex(fhat::GroupedCoefficients, u::Vector{Int})::Vector{<:Number}
     start = 1
     for s in fhat.setting
         if s[:u] == u
@@ -122,27 +120,18 @@ function Base.:getindex(fhat::GroupedCoefficients, u::Vector{<:Integer})::Vector
 end
 
 @doc raw"""
-    Base.:getindex( fhat, idx )
+    fhat::GroupedCoefficients[idx::Int]
 
-This function overloads getindex of GroupedCoefficients such that you can do `fhat[1]` to obtain the basis coefficient
-
-# Input
-* `fhat` - a GroupedCoefficients object
-* `idx` - an integer
+This function overloads getindex of GroupedCoefficients such that you can do `fhat[1]` to obtain the basis coefficient determined by `idx`.
 """
 function Base.:getindex(fhat::GroupedCoefficients, idx::Int64)::Number
     return fhat.data[idx]
 end
 
 @doc raw"""
-    Base.:setindex!( fhat, fhatu, idx )
+    fhat::GroupedCoefficients[u::Vector{Int}] = fhatu::Union{Vector{ComplexF64},Vector{Float64}}
 
-This function overloads setindex of GroupedCoefficients such that you can do `fhat[[1,3]] = [1 2 3]` to set the basis coefficients of the corresponding ANOVA term
-
-# Input
-* `fhat` - a GroupedCoefficients object
-* `fhatu` - the coefficients belonging to the term ``f_{\pmb u}``
-* `u` - a vector of integers
+This function overloads setindex of GroupedCoefficients such that you can do `fhat[[1,3]] = [1 2 3]` to set the basis coefficients of the corresponding ANOVA term defined by `u`.
 """
 function Base.:setindex!(
     fhat::GroupedCoefficients,
@@ -167,49 +156,33 @@ function Base.:setindex!(
 end
 
 @doc raw"""
-    Base.:setindex!( fhat, z, idx )
+    fhat::GroupedCoefficients[idx::Int] = z::Number
 
-This function overloads setindex of GroupedCoefficients such that you can do `fhat[1] = 3` to set the basis coefficients
-
-# Input
-* `fhat` - a GroupedCoefficients object
-* `z` - the coefficient
-* `idx` - an integer
+This function overloads setindex of GroupedCoefficients such that you can do `fhat[1] = 3` to set the basis coefficient determined by `idx`.
 """
 function Base.:setindex!(fhat::GroupedCoefficients, z::Number, idx::Int64)
     fhat.data[idx] = z
 end
 
 @doc raw"""
-    vec( fhat )
+    vec( fhat::GroupedCoefficients )::Vector{<:Number}
 
-This function returns the vector of basis coefficients of fhat. This is useful for working with `lsqr` or similar.
-
-# Input
-* `fhat` - a GroupedCoefficients object
+This function returns the vector of the basis coefficients of fhat. This is useful for working with `lsqr` or similar.
 """
 Base.:vec(fhat::GroupedCoefficients)::Vector{<:Number} = fhat.data
 
 @doc raw"""
-    *( z, fhat )
+    *( z::Number, fhat::GroupedCoefficients )::GroupedCoefficients
 
-This function defines the multiplication of a number with the GroupedCoefficients
-
-# Input
-* `z` - a number
-* `fhat` - a GroupedCoefficients object
+This function defines the multiplication of a number with a GroupedCoefficients object.
 """
 Base.:*(α::Number, fhat::GroupedCoefficients) =
     GroupedCoefficients(fhat.setting, α * vec(fhat))
 
 @doc raw"""
-    +( z, fhat )
+    +( z::Number, fhat::GroupedCoefficients )::GroupedCoefficients
 
-This function defines the addition of two GroupedCoefficients objects
-
-# Input
-* `fhat` - a GroupedCoefficients object
-* `ghat` - a GroupedCoefficients object
+This function defines the addition of two GroupedCoefficients objects.
 """
 function Base.:+(fhat::GroupedCoefficients, ghat::GroupedCoefficients)::GroupedCoefficients
     if fhat.setting == ghat.setting
@@ -220,13 +193,9 @@ function Base.:+(fhat::GroupedCoefficients, ghat::GroupedCoefficients)::GroupedC
 end
 
 @doc raw"""
-    -( z, fhat )
+    -( z::Number, fhat::GroupedCoefficients )::GroupedCoefficients
 
-This function defines the subtraction of two GroupedCoefficients objects
-
-# Input
-* `fhat` - a GroupedCoefficients object
-* `ghat` - a GroupedCoefficients object
+This function defines the subtraction of two GroupedCoefficients objects.
 """
 Base.:-(fhat::GroupedCoefficients, ghat::GroupedCoefficients) = fhat + (-1 * ghat)
 
@@ -241,12 +210,13 @@ function set_data!(
     (fhat.data)[:] = data
 end
 
-
 function norms(fhat::GroupedCoefficients)::Vector{Float64}
-    return [sqrt(sum(abs.(fhat[s[:u]]) .^ 2)) for s in fhat.setting]
+    setting = fhat.setting
+    return [norm(fhat[setting[i][:u]]) for i = 1:length(setting)]
 end
 
-
 function norms(fhat::GroupedCoefficients, what::GroupedCoefficients)::Vector{Float64}
-    return [sqrt(sum(real.(what[s[:u]]) .* abs.(fhat[s[:u]]) .^ 2)) for s in fhat.setting]
+    c = GroupedCoefficients(fhat.setting, (sqrt.(real.(what.data))) .* fhat.data)
+    setting = c.setting
+    return [norm(c[setting[i][:u]]) for i = 1:length(setting)]
 end

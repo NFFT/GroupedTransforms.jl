@@ -9,6 +9,8 @@ X = 0.5 .* rand(d, M)
 # set up transform ###################################################
 
 F = GroupedTransform("cos", d, ds, [2^12, 2^6, 2^4], X)
+get_NumFreq(F.setting)
+get_IndexSet(F.setting, d)
 F_direct = get_matrix(F)
 
 # compute transform with NFFT ########################################
@@ -34,7 +36,8 @@ fhat + ghat
 fhat - ghat
 F[[1, 2]]
 GroupedTransforms.set_data!(fhat, ghat.data)
-
+norms(fhat)
+norms(fhat, ghat)
 ###
 
 f = F * fhat

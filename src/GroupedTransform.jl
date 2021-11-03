@@ -4,17 +4,17 @@
 A struct to describe a GroupedTransformation 
 
 # Fields
-* `system` - choice of exp or cos
-* `setting` - vector of the dimensions, mode, and bandwidths for each term/group, see also [`get_setting(system::String,d::Int,ds::Int,N::Vector{Int})::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}`](@ref) and [`get_setting(system::String,U::Vector{Vector{Int}},N::Vector{Int})::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}`](@ref)
-* `X` - array of nodes
-* `transforms` - holds the low-dimensional sub transformations
+* `system::String` - choice of `"exp"` or `"cos"`
+* `setting::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}` - vector of the dimensions, mode, and bandwidths for each term/group, see also [`get_setting(system::String,d::Int,ds::Int,N::Vector{Int})::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}`](@ref) and [`get_setting(system::String,U::Vector{Vector{Int}},N::Vector{Int})::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}`](@ref)
+* `X::Array{Float64}` - array of nodes
+* `transforms::Vector{Tuple{Int64,Int64}}` - holds the low-dimensional sub transformations
 
 # Constructor
-    GroupedTransform( system::String, setting::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}, X::Array{Float64} ) 
+    GroupedTransform( system, setting, X ) 
 
 # Additional Constructor
-    GroupedTransform( system::String, d::Int, ds::Int, N::Vector{Int}, X::Array{Float64} ) 
-    GroupedTransform( system::String, U::Vector{Vector{Int}}, N::Vector{Int}, X::Array{Float64} ) 
+    GroupedTransform( system, d, ds, N::Vector{Int}, X ) 
+    GroupedTransform( system, U, N, X ) 
 """
 struct GroupedTransform
     system::String
@@ -98,16 +98,9 @@ function GroupedTransform(
 end
 
 @doc raw"""
-    *( F, fhat )
+    *( F::GroupedTransform, fhat::GroupedCoefficients )::Vector{<:Number}
 
-Overloads to * notation in order to achieve `f = F*fhat`
-
-# Input
-* `F` - a GroupedTransform object
-* `fhat` - GroupedCoefficients object with the same setting
-
-# Output
- * `f` - a vector
+Overloads the `*` notation in order to achieve `f = F*fhat`.
 """
 function Base.:*(F::GroupedTransform, fhat::GroupedCoefficients)::Vector{<:Number}
     if F.setting != fhat.setting
@@ -124,16 +117,9 @@ function Base.:*(F::GroupedTransform, fhat::GroupedCoefficients)::Vector{<:Numbe
 end
 
 @doc raw"""
-    *( F, f )
+    *( F::GroupedTransform, f::Vector{<:Number} )::GroupedCoefficients
 
-Overloads to * notation in order to achieve the adjoint transform `f = F*f`
-
-# Input
-* `F` - a GroupedTransform object
-* `f` - a vector
-
-# Output
- * `fhat` - a GroupedCoefficients object
+Overloads the * notation in order to achieve the adjoint transform `f = F*f`.
 """
 function Base.:*(F::GroupedTransform, f::Vector{<:Number})::GroupedCoefficients
     fh = Vector{Future}(undef, length(F.transforms))
@@ -150,30 +136,20 @@ function Base.:*(F::GroupedTransform, f::Vector{<:Number})::GroupedCoefficients
 end
 
 @doc raw"""
-    adjoint(F)
+    adjoint( F::GroupedTransform )::GroupedTransform
 
 Overloads the `F'` notation and gives back the same GroupdTransform. GroupedTransform decides by the input if it is the normal trafo or the adjoint so this is only for convinience.
-
-# Input
-* `F` - a GroupedTransform object
-
-# Output
-* `F` - a GroupedTransform object
 """
 function Base.:adjoint(F::GroupedTransform)::GroupedTransform
     return F
 end
 
 @doc raw"""
-    getindex(F, u)
+    F::GroupedTransform[u::Vector{Int}]::LinearMap{<:Number}
 
-This function overloads getindex of GroupedTransform such that you can do `F[[1,3]]` to obtain the transform of the corresponding ANOVA term.
-
-# Input
-* `F` - a GroupedTransform object
-* `u` - a vector of integers
+This function overloads getindex of GroupedTransform such that you can do `F[[1,3]]` to obtain the transform of the corresponding ANOVA term defined by `u`.
 """
-function Base.:getindex(F::GroupedTransform, u::Vector)
+function Base.:getindex(F::GroupedTransform, u::Vector{Int})::LinearMap{<:Number}
     idx = findfirst(s -> s[:u] == u, F.setting)
     if isnothing(idx)
         error("This term is not contained")
@@ -228,14 +204,11 @@ end
 
 
 @doc raw"""
-    get_matrix(F)
+    get_matrix( F::GroupedTransform )::Matrix{<:Number}
 
-This function returns the actual matrix of the transformation
-
-# Input
-* `F` - a GroupedTransform object
+This function returns the actual matrix of the transformation.
 """
-function get_matrix(F::GroupedTransform)
+function get_matrix(F::GroupedTransform)::Matrix{<:Number}
     s1 = F.setting[1]
     F_direct = s1[:mode].get_matrix(s1[:bandwidths], F.X[s1[:u], :])
     for (idx, s) in enumerate(F.setting)

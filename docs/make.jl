@@ -6,9 +6,9 @@ makedocs(
     modules = [GroupedTransforms],
     pages = [
         "Home" => "index.md",
-        "About" => "about.md",
         "GroupedCoefficients" => "coeffs.md",
         "GroupedTransform" => "transform.md",
+        "About" => "about.md",
     ],
 )
 
