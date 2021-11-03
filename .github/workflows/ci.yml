@@ -15,7 +15,7 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@v2
-      - uses: julia-actions/setup-julia@vlatest
+      - uses: julia-actions/setup-julia@latest
         with:
           version: ${{ matrix.julia-version }}
           arch: x64
@@ -26,5 +26,4 @@ jobs:
         with:
           file: ./lcov.info
           name: codecov-umbrella
-          fail_ci_if_error: false
         if: ${{ matrix.julia-version == '1.6' && matrix.os =='ubuntu-latest' }}
