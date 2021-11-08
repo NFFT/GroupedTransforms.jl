@@ -118,7 +118,7 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::Int64
 
     mask = nfft_mask(bandwidths)
     N = Tuple(bandwidths)
-    plan = NFFT(N, M, Tuple(2 * collect(N)), 6)
+    plan = NFFT(N, M, Tuple(2 * collect(N)), 5)
     plan.x = X
 
     function trafo(fhat::Vector{ComplexF64})::Vector{ComplexF64}

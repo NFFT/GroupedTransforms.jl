@@ -118,7 +118,7 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::Int64
 
     mask = nfct_mask(bandwidths)
 
-    plan = NFCT(Tuple(bandwidths), M)
+    plan = NFCT(Tuple(bandwidths), M, Tuple(2 * collect(bandwidths)), 5)
     plan.x = X
     factor_sqrt = sqrt(2)^d
 

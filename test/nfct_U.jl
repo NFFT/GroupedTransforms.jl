@@ -51,7 +51,7 @@ f_direct = F_direct * vec(fhat)
 # compare results ####################################################
 
 error = norm(f - f_direct)
-@test error < 1e-8
+@test error < 1e-5
 
 # generate random function values ####################################
 
@@ -68,4 +68,4 @@ fhat_direct = F_direct' * y
 # compare results ####################################################
 
 error = norm(vec(fhat) - fhat_direct)
-@test error < 1e-8
+@test error < 1e-5
