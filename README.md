@@ -7,6 +7,7 @@ Fast Grouped Transformations as introduced in [Bartel, Potts, Schmischke, 2021](
 [![ci](https://github.com/NFFT/GroupedTransforms.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/NFFT/GroupedTransforms.jl/actions?query=workflow%3ACI+branch%3Amain)
 [![codecov](https://codecov.io/gh/NFFT/GroupedTransforms.jl/branch/main/graph/badge.svg?token=FFYB0NSKHT)](https://codecov.io/gh/NFFT/GroupedTransforms.jl)
 [![Aqua QA](https://img.shields.io/badge/Aqua.jl-%F0%9F%8C%A2-aqua.svg)](https://github.com/JuliaTesting/Aqua.jl)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5654702.svg)](https://doi.org/10.5281/zenodo.5654702)
 
 `GroupedTransforms.jl` provides the following fast algorithms:
 - nonequispaced fast transformation with exponential functions for grouped index sets based on the NFFT (non-equispaced fast Fourier transform)
