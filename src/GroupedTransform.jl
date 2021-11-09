@@ -50,27 +50,14 @@ struct GroupedTransform
         w = (nworkers() == 1) ? 1 : 2
 
         for (idx, s) in enumerate(setting)
-            try
-                f[idx] =
-                    (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :]))
-                if nworkers() != 1
-                    w = (w == nworkers()) ? 2 : (w + 1)
-                end
-            catch
-                error(
-                    "The mode is not supported yet or does not have the function get_transform.",
-                )
+            f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :]))
+            if nworkers() != 1
+                w = (w == nworkers()) ? 2 : (w + 1)
             end
         end
 
         for (idx, s) in enumerate(setting)
-            try
-                transforms[idx] = (f[idx][1], fetch(f[idx][2]))
-            catch
-                error(
-                    "The mode is not supported yet or does not have the function get_transform.",
-                )
-            end
+            transforms[idx] = (f[idx][1], fetch(f[idx][2]))
         end
         new(system, setting, X, transforms)
     end
