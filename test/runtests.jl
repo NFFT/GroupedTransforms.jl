@@ -4,7 +4,8 @@ addprocs(3)
 using Test
 using Aqua
 
-Aqua.test_all(GroupedTransforms)
+Aqua.test_all(GroupedTransforms, ambiguities = false)
+Aqua.test_ambiguities(GroupedTransforms)
 
 tests = ["nfct_ds", "nfct_U", "nfft_ds", "nfft_U", "cwwt_ds", "cwwt_U"]
 
