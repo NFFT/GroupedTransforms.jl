@@ -1,6 +1,6 @@
 using Distributed
 addprocs(3)
-everywhere using GroupedTransforms
+@everywhere using GroupedTransforms
 using Test
 using Aqua
 
