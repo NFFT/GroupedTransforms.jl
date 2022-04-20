@@ -33,7 +33,7 @@ for i = 1:length(F.setting)
 end
 
 fhat[1]
-fhat[1] = 1.0 
+fhat[1] = 1.0
 2 * fhat
 fhat + ghat
 fhat - ghat
