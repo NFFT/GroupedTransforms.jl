@@ -75,15 +75,12 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, m::Int)::Int6
   V: Values
   """
 
-
-
   if bandwidths == []       #0-dimensional terms
     idx = length(trafos)
     I = collect(1:M)
     J = ones(M)
     V = ones(M)
     trafos[idx] = sparse(I,J,V)
-    #trafos[idx] = LinearMap{ComplexF64}(fhat -> fill(fhat[1], M), f -> [sum(f)], M, 1)
     append!( trafos, Vector{SparseMatrixCSC{Float64, Int64}}(undef,1) )
     return idx
 elseif d == 1    #1-dimensional terms
@@ -239,36 +236,7 @@ elseif d == 2
 
  end  #if d == ...
 
-
-
 end #function
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 """
@@ -364,7 +332,7 @@ return y
 end
 
 
-
+"Chui-Wang-Wavelet Function for different orders m :"
 function  Chui_wavelet(x::Array{Float64},m::Int )::Array{Float64}
 """
 % periodic Chui-Wang-Wavelets,
@@ -396,7 +364,7 @@ end
 return psi
 end
 
-
+"Cardinal B-Spline :"
 function cardinal_bspline(v::Array{Float64},order::Int)::Array{Float64}
 """
 % evaluates the centered cardinal B-spline of the given order at v
@@ -634,30 +602,6 @@ function  begin_index2d(j::Int):: Int
         ind = 2^(j)*(j-1)+2;
     end
     end
-
-#
-#    function get_matrix(bandwidths::Vector{Int}, X::Array{Float64})::Array{ComplexF64}
-#      if size(X, 1) == 1
-#        X = vec(X)
-#        d = 1
-#        M = length(X)
-#      else
-#        (d, M) = size(X)
-#      end
-
-#      if bandwidths == []
-#        return ones(ComplexF64, M, 1)
-#      end
-
-#      if d == 1
-#        for j = 0: bandwidths[1]
-#            for k = 0:2^j-1
-#        F_direct[:,indextoN([j],[k])] = Chui_periodic(vec(X),2,j,[k])
-#            end
-#        end
-#      return F_direct
-#    end
-#    end
 
 
 end #module

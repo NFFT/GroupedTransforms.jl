@@ -210,9 +210,25 @@ function set_data!(
     (fhat.data)[:] = data
 end
 
-function norms(fhat::GroupedCoefficients,m::Int = 1;dict =false)::Union{Vector{Float64},Dict{Vector{Int},Float64}}
+function norms(fhat::GroupedCoefficients; dict =false)::Union{Vector{Float64},Dict{Vector{Int},Float64}}
+    setting = fhat.setting
 	if dict == false
-	    setting = fhat.setting
+    	return [norm(fhat[setting[i][:u]]) for i = 1:length(setting)]
+	else
+		dd = Dict{Vector{Int},Float64}()
+		for i  = 1: length(fhat.setting)
+			if fhat.setting[i][:u] != []
+				dd[fhat.setting[i][:u]] = norm(fhat[setting[i][:u]])
+			end
+		end
+		return dd
+	end
+end
+
+
+function norms(fhat::GroupedCoefficients, m::Int ; dict =false)::Union{Vector{Float64},Dict{Vector{Int},Float64}}
+	setting = fhat.setting
+	if dict == false
 	    if setting[1][:mode] == CWWTtools
 	        n = zeros(length(fhat.setting))
 			for i  = 1: length(fhat.setting)
@@ -221,7 +237,7 @@ function norms(fhat::GroupedCoefficients,m::Int = 1;dict =false)::Union{Vector{F
 				ac_in = 1    #actual index
 				freq = CWWTtools.cwwt_index_set(fhat.setting[i].bandwidths)
 				if d == 1
-				freq = transpose(freq)
+					freq = transpose(freq)
 				end
 				for jj in 1:size(freq,2)
 					j = freq[:,jj]
@@ -242,7 +258,6 @@ function norms(fhat::GroupedCoefficients,m::Int = 1;dict =false)::Union{Vector{F
 	    end
 	else #dict ==true
 		dd = Dict{Vector{Int},Float64}()
-		setting = fhat.setting
 	    if setting[1][:mode] == CWWTtools
 	        n = zeros(length(fhat.setting))
 			for i  = 1: length(fhat.setting)
@@ -272,8 +287,8 @@ function norms(fhat::GroupedCoefficients,m::Int = 1;dict =false)::Union{Vector{F
 			return dd
 	    else
 			for i  = 1: length(fhat.setting)
-	            if fhat.setting[1][:u] != []
-	                dd[u] = norm(fhat[setting[i][:u]])
+	            if fhat.setting[i][:u] != []
+	                dd[fhat.setting[i][:u]] = norm(fhat[setting[i][:u]])
 	            end
 			end
 	        return dd

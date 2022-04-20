@@ -5,7 +5,7 @@ using SparseArrays
 A struct to describe a GroupedTransformation
 
 # Fields
-* `system::String` - choice of `"exp"` or `"cos"` or `"wav"`
+* `system::String` - choice of `"exp"` or `"cos"` or `"wav1"` or `"wav2"` or `"wav3"` or `"wav4"`
 * `setting::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}` - vector of the dimensions, mode, and bandwidths for each term/group, see also [`get_setting(system::String,d::Int,ds::Int,N::Vector{Int})::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}`](@ref) and [`get_setting(system::String,U::Vector{Vector{Int}},N::Vector{Int})::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}`](@ref)
 * `X::Array{Float64}` - array of nodes
 * `transforms::Vector{Tuple{Int64,Int64}}` - holds the low-dimensional sub transformations
@@ -199,7 +199,7 @@ function Base.:getindex(F::GroupedTransform, u::Vector{Int})#::LinearMap{<:Numbe
             M = size(F.X, 2)
             return LinearMap{ComplexF64}(trafo_exp, adjoint_exp, M, N)
 
-        elseif F.system == "wav1" || F.system == "wav2"  || F.system == "wav3"||F.system == "wav4"    #TODO -does not work
+        elseif F.system == "wav1" || F.system == "wav2"  || F.system == "wav3"||F.system == "wav4"
             #S = SparseMatrixCSC{Float64, Int}
             S = @spawnat F.transforms[idx][1] (F.setting[idx][:mode].trafos[F.transforms[idx][2]])
             return SparseMatrixCSC{Float64, Int}(fetch(S))
@@ -211,7 +211,7 @@ end
 @doc raw"""
     get_matrix( F::GroupedTransform )::Matrix{<:Number}
 
-This function returns the actual matrix of the transformation.
+This function returns the actual matrix of the transformation. This is not available for the wavelet basis
 """
 function get_matrix(F::GroupedTransform)::Matrix{<:Number}
     s1 = F.setting[1]
