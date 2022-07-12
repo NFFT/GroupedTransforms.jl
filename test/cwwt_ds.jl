@@ -9,7 +9,7 @@ X = rand(d, M) .- 0.5
 
 # set up transform ###################################################
 
-F = GroupedTransform("wav3", d, ds, [3, 2, 1], X)
+F = GroupedTransform("chui3", d, ds, [3, 2, 1], X)
 #F_direct = get_matrix(F)
 
 # compute transform with CWWT ########################################
