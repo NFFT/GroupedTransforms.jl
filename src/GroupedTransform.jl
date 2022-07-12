@@ -5,7 +5,7 @@ using SparseArrays
 A struct to describe a GroupedTransformation
 
 # Fields
-* `system::String` - choice of `"exp"` or `"cos"` or `"wav1"` or `"wav2"` or `"wav3"` or `"wav4"`
+* `system::String` - choice of `"exp"` or `"cos"` or `"chui1"` or `"chui2"` or `"chui3"` or `"chui4"`
 * `setting::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}` - vector of the dimensions, mode, and bandwidths for each term/group, see also [`get_setting(system::String,d::Int,ds::Int,N::Vector{Int})::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}`](@ref) and [`get_setting(system::String,U::Vector{Vector{Int}},N::Vector{Int})::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}`](@ref)
 * `X::Array{Float64}` - array of nodes
 * `transforms::Vector{Tuple{Int64,Int64}}` - holds the low-dimensional sub transformations
@@ -30,19 +30,13 @@ struct GroupedTransform
         setting::Vector{
             NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}},
         },
-        X::Array{Float64},
+        X::Array{Float64}
     )
         if !haskey(systems, system)
             error("System not found.")
         end
 
-        if (
-            system == "exp" ||
-            system == "wav1" ||
-            system == "wav2" ||
-            system == "wav3" ||
-            system == "wav4"
-        )
+        if (system == "exp"  || system =="chui1" || system =="chui2"||system =="chui3"||system =="chui4")
             if (minimum(X) < -0.5) || (maximum(X) >= 0.5)
                 error("Nodes must be between -0.5 and 0.5.")
             end
@@ -57,29 +51,16 @@ struct GroupedTransform
         w = (nworkers() == 1) ? 1 : 2
 
         for (idx, s) in enumerate(setting)
-            if system == "wav1"
-                f[idx] = (
-                    w,
-                    remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], 1),
-                )
-            elseif system == "wav2"
-                f[idx] = (
-                    w,
-                    remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], 2),
-                )
-            elseif system == "wav3"
-                f[idx] = (
-                    w,
-                    remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], 3),
-                )
-            elseif system == "wav4"
-                f[idx] = (
-                    w,
-                    remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], 4),
-                )
+            if system =="chui1"
+                f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], 1 ))
+            elseif system =="chui2"
+                f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], 2))
+            elseif system =="chui3"
+                f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], 3))
+            elseif system =="chui4"
+                f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], 4))
             else
-                f[idx] =
-                    (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :]))
+                f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :]))
             end
             if nworkers() != 1
                 w = (w == nworkers()) ? 2 : (w + 1)
@@ -218,14 +199,10 @@ function Base.:getindex(F::GroupedTransform, u::Vector{Int})#::LinearMap{<:Numbe
             M = size(F.X, 2)
             return LinearMap{ComplexF64}(trafo_exp, adjoint_exp, M, N)
 
-        elseif F.system == "wav1" ||
-               F.system == "wav2" ||
-               F.system == "wav3" ||
-               F.system == "wav4"
+        elseif F.system == "chui1" || F.system == "chui2"  || F.system == "chui3"||F.system == "chui4"
             #S = SparseMatrixCSC{Float64, Int}
-            S =
-                @spawnat F.transforms[idx][1] (F.setting[idx][:mode].trafos[F.transforms[idx][2]])
-            return SparseMatrixCSC{Float64,Int}(fetch(S))
+            S = @spawnat F.transforms[idx][1] (F.setting[idx][:mode].trafos[F.transforms[idx][2]])
+            return SparseMatrixCSC{Float64, Int}(fetch(S))
         end
     end
 end

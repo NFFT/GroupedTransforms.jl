@@ -25,14 +25,7 @@ export NFCTtools
 export NFFTtools
 export CWWTtools
 
-systems = Dict(
-    "exp" => NFFTtools,
-    "cos" => NFCTtools,
-    "wav1" => CWWTtools,
-    "wav2" => CWWTtools,
-    "wav3" => CWWTtools,
-    "wav4" => CWWTtools,
-)
+systems = Dict("exp" => NFFTtools, "cos" => NFCTtools, "chui1" => CWWTtools, "chui2" => CWWTtools, "chui3" => CWWTtools, "chui4" => CWWTtools)
 
 function get_setting(
     system::String,
@@ -86,32 +79,32 @@ function get_NumFreq(
         NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}},
     },
 )::Int
-    if setting[1].mode == CWWTtools
-        function datalength(bandwidths::Vector{Int})::Int
-            if bandwidths == []
-                return 1
-            elseif length(bandwidths) == 1
-                return 2^(bandwidths[1] + 1) - 1
-            elseif length(bandwidths) == 2
-                return 2^(bandwidths[1] + 1) * bandwidths[1] + 1
-            elseif length(bandwidths) == 3
-                n = bandwidths[1]
-                return 2^n * n^2 + 2^n * n + 2^(n + 1) - 1
-            else
-                d = length(bandwidths)
-                n = bandwidths[1]
-                tmp = 0
-                for i = 0:n
-                    tmp += 2^i * binomial(i + d - 1, d - 1)
-                end
-                return s
-            end
-        end
-        return sum(s -> datalength(s[:bandwidths]), setting)
-
+if setting[1].mode == CWWTtools
+    function datalength(bandwidths::Vector{Int})::Int
+        if bandwidths == []
+            return 1
+        elseif length(bandwidths) == 1
+            return 2^(bandwidths[1]+1)-1
+        elseif length(bandwidths) == 2
+            return 2^(bandwidths[1]+1)*bandwidths[1]+1
+        elseif length(bandwidths) == 3
+            n = bandwidths[1]
+            return 2^n*n^2+2^n*n+2^(n+1)-1
     else
-        return sum(s -> prod(s[:bandwidths] .- 1), setting)
+        d = length(bandwidths)
+        n = bandwidths[1]
+        tmp = 0
+        for i =0:n
+            tmp += 2^i*binomial(i+d-1,d-1)
+        end
+        return s
     end
+    end
+    return sum(s -> datalength(s[:bandwidths]), setting)
+
+else
+    return sum(s -> prod(s[:bandwidths] .- 1), setting)
+end
 end
 
 function get_IndexSet(

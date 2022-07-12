@@ -96,7 +96,7 @@ function GroupedCoefficients(
 )
     if setting[1][:mode] == NFFTtools
         return GroupedCoefficientsComplex(setting, data)
-    elseif (setting[1][:mode] == NFCTtools || setting[1][:mode] == CWWTtools)
+    elseif (setting[1][:mode] == NFCTtools  || setting[1][:mode] == CWWTtools )
         return GroupedCoefficientsReal(setting, data)
     end
 end
@@ -210,97 +210,90 @@ function set_data!(
     (fhat.data)[:] = data
 end
 
-function norms(
-    fhat::GroupedCoefficients;
-    dict = false,
-)::Union{Vector{Float64},Dict{Vector{Int},Float64}}
+function norms(fhat::GroupedCoefficients; dict =false)::Union{Vector{Float64},Dict{Vector{Int},Float64}}
     setting = fhat.setting
-    if dict == false
-        return [norm(fhat[setting[i][:u]]) for i = 1:length(setting)]
-    else
-        dd = Dict{Vector{Int},Float64}()
-        for i = 1:length(fhat.setting)
-            if fhat.setting[i][:u] != []
-                dd[fhat.setting[i][:u]] = norm(fhat[setting[i][:u]])
-            end
-        end
-        return dd
-    end
+	if dict == false
+    	return [norm(fhat[setting[i][:u]]) for i = 1:length(setting)]
+	else
+		dd = Dict{Vector{Int},Float64}()
+		for i  = 1: length(fhat.setting)
+			if fhat.setting[i][:u] != []
+				dd[fhat.setting[i][:u]] = norm(fhat[setting[i][:u]])
+			end
+		end
+		return dd
+	end
 end
 
 
-function norms(
-    fhat::GroupedCoefficients,
-    m::Int;
-    dict = false,
-)::Union{Vector{Float64},Dict{Vector{Int},Float64}}
-    setting = fhat.setting
-    if dict == false
-        if setting[1][:mode] == CWWTtools
-            n = zeros(length(fhat.setting))
-            for i = 1:length(fhat.setting)
-                s = fhat.setting[i]
-                d = length(fhat.setting[i].u)
-                ac_in = 1    #actual index
-                freq = CWWTtools.cwwt_index_set(fhat.setting[i].bandwidths)
-                if d == 1
-                    freq = transpose(freq)
-                end
-                for jj = 1:size(freq, 2)
-                    j = freq[:, jj]
-                    a = fhat[s.u][ac_in:ac_in+2^sum(j)-1]
-                    Psi = Circulant(variances(j[1], m))
-                    if d > 1
-                        for dd = 2:d
-                            Psi = kron(Psi, Circulant(variances(j[dd], m)))
-                        end
-                    end
-                    n[i] = n[i] + a' * Psi * a
-                    ac_in = ac_in + 2^sum(j)
-                end
-            end
-            return sqrt.(n)
-        else
-            return [norm(fhat[setting[i][:u]]) for i = 1:length(setting)]
-        end
-    else #dict ==true
-        dd = Dict{Vector{Int},Float64}()
-        if setting[1][:mode] == CWWTtools
-            n = zeros(length(fhat.setting))
-            for i = 1:length(fhat.setting)
-                s = fhat.setting[i]
-                d = length(fhat.setting[i].u)
-                ac_in = 1    #actual index
-                freq = CWWTtools.cwwt_index_set(fhat.setting[i].bandwidths)
-                if d == 1
-                    freq = transpose(freq)
-                end
-                for jj = 1:size(freq, 2)
-                    j = freq[:, jj]
-                    a = fhat[s.u][ac_in:ac_in+2^sum(j)-1]
-                    Psi = Circulant(variances(j[1], m))
-                    if d > 1
-                        for dd = 2:d
-                            Psi = kron(Psi, Circulant(variances(j[dd], m)))
-                        end
-                    end
-                    n[i] = n[i] + a' * Psi * a
-                    ac_in = ac_in + 2^sum(j)
-                end
-                if fhat.setting[i].u != []
-                    dd[fhat.setting[i].u] = sqrt(n[i])
-                end
-            end
-            return dd
-        else
-            for i = 1:length(fhat.setting)
-                if fhat.setting[i][:u] != []
-                    dd[fhat.setting[i][:u]] = norm(fhat[setting[i][:u]])
-                end
-            end
-            return dd
-        end
-    end  #dict
+function norms(fhat::GroupedCoefficients, m::Int ; dict =false)::Union{Vector{Float64},Dict{Vector{Int},Float64}}
+	setting = fhat.setting
+	if dict == false
+	    if setting[1][:mode] == CWWTtools
+	        n = zeros(length(fhat.setting))
+			for i  = 1: length(fhat.setting)
+				s = fhat.setting[i]
+				d = length(fhat.setting[i].u)
+				ac_in = 1    #actual index
+				freq = CWWTtools.cwwt_index_set(fhat.setting[i].bandwidths)
+				if d == 1
+					freq = transpose(freq)
+				end
+				for jj in 1:size(freq,2)
+					j = freq[:,jj]
+					a = fhat[s.u][ac_in:ac_in+2^sum(j)-1]
+					Psi = Circulant(variances(j[1],m))
+						if d>1
+							for dd =2:d
+								Psi = kron(Psi,Circulant(variances(j[dd],m)))
+							end
+						end
+					n[i] = n[i] + a'*Psi*a
+					ac_in = ac_in +2^sum(j)
+				end
+			end
+			return sqrt.(n)
+	    else
+	        return [norm(fhat[setting[i][:u]]) for i = 1:length(setting)]
+	    end
+	else #dict ==true
+		dd = Dict{Vector{Int},Float64}()
+	    if setting[1][:mode] == CWWTtools
+	        n = zeros(length(fhat.setting))
+			for i  = 1: length(fhat.setting)
+				s = fhat.setting[i]
+				d = length(fhat.setting[i].u)
+				ac_in = 1    #actual index
+				freq = CWWTtools.cwwt_index_set(fhat.setting[i].bandwidths)
+				if d == 1
+				freq = transpose(freq)
+				end
+				for jj in 1:size(freq,2)
+					j = freq[:,jj]
+					a = fhat[s.u][ac_in:ac_in+2^sum(j)-1]
+					Psi = Circulant(variances(j[1],m))
+						if d>1
+							for dd =2:d
+								Psi = kron(Psi,Circulant(variances(j[dd],m)))
+							end
+						end
+					n[i] = n[i] + a'*Psi*a
+					ac_in = ac_in +2^sum(j)
+				end
+				if fhat.setting[i].u != []
+					dd[fhat.setting[i].u] = sqrt(n[i])
+				end
+			end
+			return dd
+	    else
+			for i  = 1: length(fhat.setting)
+	            if fhat.setting[i][:u] != []
+	                dd[fhat.setting[i][:u]] = norm(fhat[setting[i][:u]])
+	            end
+			end
+	        return dd
+	    end
+	end  #dict
 end  #function
 
 
@@ -314,106 +307,59 @@ end
 
 
 """matrix of variances between two basis functions, needed for wavelet basis, since they are not orthonormal"""
-function variances(j::Int, m::Int)::Vector{Float64}
-    """
-    INPUT
-    j 		... level of wavelet
-    m 		...	order of wavelet
-    OUTPUT
-    y = (<psi_{j,0},psi_{j,k}>)for k = 0...2^j-1
-    								(psi_{j,k}) are the wavelets, output contains a vector of all scalar products of one level
-    								for 2^j >2m*1 the same values, but more zeros for higher j.
-    
-    """
-    if m == 2
-        if j == 0
-            y = [1 / 3]
-        elseif j == 1
-            y = [0.240740740740715, 0.092592592592576]
-        elseif j == 2
-            y = [
-                0.250000000000097,
-                0.046296296296494,
-                -0.009259259259238,
-                0.046296296296451,
-            ]
-        else
-            y = zeros(2^j)
-            y[1:3] = [0.249999999999968, 0.046296296296379, -0.004629629629584]
-            y[end:-1:end-1] = [0.046296296296379, -0.004629629629584]
-        end
+function variances(j::Int,m::Int)::Vector{Float64}
+"""
+INPUT
+j 		... level of wavelet
+m 		...	order of wavelet
+OUTPUT
+y = (<psi_{j,0},psi_{j,k}>)for k = 0...2^j-1
+								(psi_{j,k}) are the wavelets, output contains a vector of all scalar products of one level
+								for 2^j >2m*1 the same values, but more zeros for higher j.
 
-    elseif m == 3
-        if j == 0
-            y = [0.133333333333334]
-        elseif j == 1
-            y = [0.085629629629627, 0.047703703703701]
-        elseif j == 2
-            y = [
-                0.098444444444468,
-                0.023851851851835,
-                -0.012814814814815,
-                0.023851851851891,
-            ]
-        elseif j == 3
-            y = [
-                0.098443287037094,
-                0.024151620370357,
-                -0.006407407407473,
-                -2.997685185108751e-04,
-                1.157407410282006e-06,
-                -2.997685185108751e-04,
-                -0.006407407407473,
-                0.024151620370,
-            ]
-        else
-            y = zeros(2^j)
-            y[1:5] = [
-                0.098443287037052,
-                0.024151620370458,
-                -0.006407407407375,
-                -2.997685186147822e-04,
-                5.787036288131668e-07,
-            ]
-            y[end:-1:end-3] = y[2:1:5]
-        end
+"""
+if m ==2
+	if j == 0
+		y = [1/3]
+	elseif j == 1
+		y = [0.240740740740715, 0.092592592592576]
+	elseif j ==2
+		y = [0.250000000000097,0.046296296296494,-0.009259259259238, 0.046296296296451]
+	else
+		y = zeros(2^j)
+		y[1:3]= [0.249999999999968, 0.046296296296379, -0.004629629629584]
+		y[end:-1:end-1] = [ 0.046296296296379,-0.004629629629584]
+	end
 
-    elseif m == 4
-        if j == 0
-            y = [0.053968253968254]
-        elseif j == 1
-            y = [0.032014093350, 0.021954160617785]
-        elseif j == 2
-            y = [
-                0.041543521817902,
-                0.010977080308839,
-                -0.009529428467484,
-                0.010977080308902,
-            ]
-        elseif j == 3
-            y = [
-                0.041534149423629,
-                0.011629855618373,
-                -0.004764714233735,
-                -6.527753094869201e-04,
-                9.372394228547530e-06,
-                -6.527753094788768e-04,
-                -0.004764714233719,
-                0.011629855618379,
-            ]
-        else
-            y = zeros(2^j)
-            y[1:7] = [
-                0.041534149423653,
-                0.011629855618368,
-                -0.004764714225921,
-                -6.528682451447852e-04,
-                4.686197131487609e-06,
-                9.293564145017154e-08,
-                -7.821712475559538e-12,
-            ]
-            y[end:-1:end-5] = y[2:1:7]
-        end
-    end
-    return y
+elseif m ==3
+	if j == 0
+		y = [0.133333333333334]
+	elseif j == 1
+		y = [0.085629629629627, 0.047703703703701]
+	elseif j == 2
+		y = [0.098444444444468,0.023851851851835,-0.012814814814815, 0.023851851851891]
+	elseif j == 3
+		y= [0.098443287037094,0.024151620370357,-0.006407407407473,-2.997685185108751e-04,1.157407410282006e-06,-2.997685185108751e-04,-0.006407407407473,0.024151620370]
+	else
+		y = zeros(2^j)
+		y[1:5]= [0.098443287037052, 0.024151620370458, -0.006407407407375, -2.997685186147822e-04,5.787036288131668e-07]
+		y[end:-1:end-3] = y[2:1:5]
+	end
+
+elseif m ==4
+	if j == 0
+		y = [0.053968253968254]
+	elseif j == 1
+		y = [0.032014093350, 0.021954160617785]
+	elseif j == 2
+		y = [0.041543521817902,0.010977080308839,-0.009529428467484, 0.010977080308902]
+	elseif j == 3
+		y= [0.041534149423629,0.011629855618373,-0.004764714233735,-6.527753094869201e-04,9.372394228547530e-06,-6.527753094788768e-04,-0.004764714233719,0.011629855618379]
+	else
+		y = zeros(2^j)
+		y[1:7]= [0.041534149423653, 0.011629855618368, -0.004764714225921, -6.528682451447852e-04,4.686197131487609e-06, 9.293564145017154e-08,-7.821712475559538e-12]
+		y[end:-1:end-5] = y[2:1:7]
+	end
+end
+return y
 end
