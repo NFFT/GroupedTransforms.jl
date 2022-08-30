@@ -157,18 +157,16 @@ function Base.:getindex(F::GroupedTransform, u::Vector{Int})#::LinearMap{<:Numbe
         if F.system == "cos"
             function trafo_cos(fhat::Vector{Float64})::Vector{Float64}
                 return remotecall_fetch(
-                    F.setting[idx][:mode].trafo,
+                    F.setting[idx][:mode].trafos[F.transforms[idx][2]],
                     F.transforms[idx][1],
-                    F.transforms[idx][2],
                     fhat,
                 )
             end
 
             function adjoint_cos(f::Vector{Float64})::Vector{Float64}
                 return remotecall_fetch(
-                    F.setting[idx][:mode].adjoint,
+                    F.setting[idx][:mode].trafos[F.transforms[idx][2]]',
                     F.transforms[idx][1],
-                    F.transforms[idx][2],
                     f,
                 )
             end
@@ -179,18 +177,16 @@ function Base.:getindex(F::GroupedTransform, u::Vector{Int})#::LinearMap{<:Numbe
         elseif F.system == "exp"
             function trafo_exp(fhat::Vector{ComplexF64})::Vector{ComplexF64}
                 return remotecall_fetch(
-                    F.setting[idx][:mode].trafo,
+                    F.setting[idx][:mode].trafos[F.transforms[idx][2]],
                     F.transforms[idx][1],
-                    F.transforms[idx][2],
                     fhat,
                 )
             end
 
             function adjoint_exp(f::Vector{ComplexF64})::Vector{ComplexF64}
                 return remotecall_fetch(
-                    F.setting[idx][:mode].adjoint,
+                    F.setting[idx][:mode].trafos[F.transforms[idx][2]]',
                     F.transforms[idx][1],
-                    F.transforms[idx][2],
                     f,
                 )
             end
