@@ -31,6 +31,7 @@ function nfct_index_set_without_zeros(bandwidths::Vector{Int})::Array{Int}
     d == 0 && return [0]
     d == 1 && return collect(Int.([1:1; 2:bandwidths[1]-1]))
 
+    bandwidths = reverse(bandwidths)
     tmp = Tuple([Int.([1:1; 2:bw-1]) for bw in bandwidths])
     tmp = Iterators.product(tmp...)
     freq = Matrix{Int}(undef, d, prod(bandwidths .- 1))
@@ -55,6 +56,7 @@ function nfct_index_set(bandwidths::Vector{Int})::Array{Int}
     d == 0 && return [0]
     d == 1 && return collect(Int.(0:bandwidths[1]-1))
 
+    bandwidths = reverse(bandwidths)
     tmp = Tuple([Int.(0:bw-1) for bw in bandwidths])
     tmp = Iterators.product(tmp...)
     freq = Matrix{Int}(undef, d, prod(bandwidths))

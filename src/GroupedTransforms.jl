@@ -20,19 +20,22 @@ end
 include("NFFTtools.jl")
 include("NFCTtools.jl")
 include("CWWTtools.jl")
+include("NFFCTtools.jl")
 
 export NFCTtools
 export NFFTtools
 export CWWTtools
+export NFFCTtools
 
-systems = Dict("exp" => NFFTtools, "cos" => NFCTtools, "chui1" => CWWTtools, "chui2" => CWWTtools, "chui3" => CWWTtools, "chui4" => CWWTtools)
+systems = Dict("exp" => NFFTtools, "cos" => NFCTtools, "chui1" => CWWTtools, "chui2" => CWWTtools, "chui3" => CWWTtools, "chui4" => CWWTtools, "expcos" => NFFCTtools)
 
 function get_setting(
     system::String,
     d::Int,
     ds::Int,
     N::Vector{Int},
-)::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}
+    dcos::Vector{Bool} = Vector{Bool}([]),
+)::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}}
     if !haskey(systems, system)
         error("System not found.")
     end
@@ -42,17 +45,29 @@ function get_setting(
     tmp = vcat([0], N)
     U = GroupedTransforms.get_superposition_set(d, ds)
     bandwidths = [fill(tmp[length(u)+1], length(u)) for u in U]
-    return [
-        (u = U[idx], mode = systems[system], bandwidths = bandwidths[idx]) for
-        idx = 1:length(U)
-    ]
+    if systems[system] == NFFCTtools
+        if length(dcos) == 0
+            error("please call get_setting with dcos for a NFFCT transform.")
+        end
+        if length(dcos) != d
+            error("dcos must have an entry for every dimension.")
+        end
+        return [
+            (u = U[idx], mode = systems[system], bandwidths = bandwidths[idx], bases = dcos[U[idx]]) for idx = 1:length(U)
+        ]       
+    else
+        return [
+            (u = U[idx], mode = systems[system], bandwidths = bandwidths[idx], bases = []) for idx = 1:length(U)
+        ]
+    end
 end
 
 function get_setting(
     system::String,
     U::Vector{Vector{Int}},
     N::Vector{Int},
-)::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}
+    dcos::Vector{Bool} = Vector{Bool}([]),
+)::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}}
     if !haskey(systems, system)
         error("System not found.")
     end
@@ -69,47 +84,58 @@ function get_setting(
         end
     end
 
-    return [
-        (u = U[idx], mode = systems[system], bandwidths = bws[idx]) for idx = 1:length(U)
-    ]
+    if systems[system] == NFFCTtools
+        if length(dcos) == 0
+            error("please call get_setting with dcos for a NFFCT transform.")
+        end
+        if length(dcos) != maximum(U)[1]
+            error("dcos must have an entry for every dimension.")
+        end
+        return [
+            (u = U[idx], mode = systems[system], bandwidths = bws[idx], bases = dcos[U[idx]]) for idx = 1:length(U)
+        ]       
+    else
+        return [
+            (u = U[idx], mode = systems[system], bandwidths = bws[idx], bases = []) for idx = 1:length(U)
+        ]
+    end
 end
 
 function get_NumFreq(
     setting::Vector{
-        NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}},
+        NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}
     },
 )::Int
-if setting[1].mode == CWWTtools
-    function datalength(bandwidths::Vector{Int})::Int
-        if bandwidths == []
-            return 1
-        elseif length(bandwidths) == 1
-            return 2^(bandwidths[1]+1)-1
-        elseif length(bandwidths) == 2
-            return 2^(bandwidths[1]+1)*bandwidths[1]+1
-        elseif length(bandwidths) == 3
-            n = bandwidths[1]
-            return 2^n*n^2+2^n*n+2^(n+1)-1
-    else
-        d = length(bandwidths)
-        n = bandwidths[1]
-        tmp = 0
-        for i =0:n
-            tmp += 2^i*binomial(i+d-1,d-1)
+    if setting[1].mode == CWWTtools
+        function datalength(bandwidths::Vector{Int})::Int
+            if bandwidths == []
+                return 1
+            elseif length(bandwidths) == 1
+                return 2^(bandwidths[1]+1)-1
+            elseif length(bandwidths) == 2
+                return 2^(bandwidths[1]+1)*bandwidths[1]+1
+            elseif length(bandwidths) == 3
+                n = bandwidths[1]
+                return 2^n*n^2+2^n*n+2^(n+1)-1
+            else
+                d = length(bandwidths)
+                n = bandwidths[1]
+                tmp = 0
+                for i =0:n
+                    tmp += 2^i*binomial(i+d-1,d-1)
+                end
+                return s
+            end
         end
-        return s
+        return sum(s -> datalength(s[:bandwidths]), setting)
+    else
+        return sum(s -> prod(s[:bandwidths] .- 1), setting)
     end
-    end
-    return sum(s -> datalength(s[:bandwidths]), setting)
-
-else
-    return sum(s -> prod(s[:bandwidths] .- 1), setting)
-end
 end
 
 function get_IndexSet(
     setting::Vector{
-        NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}},
+        NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}
     },
     d::Int,
 )::Matrix{Int}
@@ -128,6 +154,8 @@ function get_IndexSet(
             index_set_u = s[:mode].nfft_index_set_without_zeros(s[:bandwidths])
         elseif s[:mode] == NFCTtools
             index_set_u = s[:mode].nfct_index_set_without_zeros(s[:bandwidths])
+        elseif s[:mode] == NFFCTtools
+            index_set_u = s[:mode].nffct_index_set_without_zeros(s[:bandwidths], s[:bases])
         end
 
         if length(s[:u]) == 1

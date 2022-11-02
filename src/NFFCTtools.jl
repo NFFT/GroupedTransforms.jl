@@ -1,7 +1,8 @@
-module NFFTtools
+module NFFCTtools
 
+#using NFFCT
+include("/home/arch/git/NFFT3.jl/src/NFFCT.jl")
 using LinearMaps
-using NFFT3
 
 """
 `N = datalength(bandwidths)`
@@ -16,23 +17,33 @@ function datalength(bandwidths::Vector{Int})::Int
     return prod(bandwidths .- 1)
 end
 
-
 """
-`freq = nfft_index_set_without_zeros(bandwidths)`
+`freq = nfct_index_set_without_zeros(bandwidths)`
 
 # Input:
  * `bandwidths::Vector{Int}`
+ * `dcos::Vector{Bool}`
 
 # Output:
  * `freq::Array{Int}` ... all frequencies of the full cube without any vector having a zero entry
 """
-function nfft_index_set_without_zeros(bandwidths::Vector{Int})::Array{Int}
+function nffct_index_set_without_zeros(bandwidths::Vector{Int}, dcos::Vector{Bool})::Array{Int}
     d = length(bandwidths)
     d == 0 && return [0]
-    d == 1 && return collect(Int.([-bandwidths[1]/2:-1; 1:bandwidths[1]/2-1]))
+    d == 1 && dcos[1] && return collect([1:1; 2:bandwidths[1]-1])
+    d == 1 && !dcos[1] && return collect([-bandwidths[1]÷2:-1; 1:bandwidths[1]÷2-1])
 
     bandwidths = reverse(bandwidths)
-    tmp = Tuple([Int.([-bw/2:-1; 1:bw/2-1]) for bw in bandwidths])
+    dcos = reverse(dcos)
+    tmp = Vector{Vector{Int64}}()
+    for i = range(1,d)
+        if dcos[i]
+            append!(tmp, [[1:1; 2:bandwidths[i]-1]])
+        else
+            append!(tmp, [[-bandwidths[i]÷2:-1; 1:bandwidths[i]÷2-1]])
+        end
+    end
+    tmp = Tuple(tmp)
     tmp = Iterators.product(tmp...)
     freq = Matrix{Int}(undef, d, prod(bandwidths .- 1))
     for (m, x) in enumerate(tmp)
@@ -41,23 +52,33 @@ function nfft_index_set_without_zeros(bandwidths::Vector{Int})::Array{Int}
     return freq
 end
 
-
 """
-`freq = nfft_index_set(bandwidths)`
+`freq = nfct_index_set(bandwidths)`
 
 # Input:
  * `bandwidths::Vector{Int}`
+ * `dcos::Vector{Bool}`
 
 # Output:
  * `freq::Array{Int}` ... all frequencies of the full cube
 """
-function nfft_index_set(bandwidths::Vector{Int})::Array{Int}
+function nffct_index_set(bandwidths::Vector{Int}, dcos::Vector{Bool})::Array{Int}
     d = length(bandwidths)
     d == 0 && return [0]
-    d == 1 && return collect(Int.(-bandwidths[1]/2:bandwidths[1]/2-1))
+    d == 1 && dcos[1] && return collect([0:0; 1:bandwidths[1]-1])
+    d == 1 && !dcos[1] && return collect([-bandwidths[1]÷2:0; 1:bandwidths[1]÷2-1])
 
     bandwidths = reverse(bandwidths)
-    tmp = Tuple([Int.(-bw/2:bw/2-1) for bw in bandwidths])
+    dcos = reverse(dcos)
+    tmp = Vector{Vector{Int64}}()
+    for i = range(1,d)
+        if dcos[i]
+            append!(tmp, [[0:0; 1:bandwidths[i]-1]])
+        else
+            append!(tmp, [[-bandwidths[i]÷2:0; 1:bandwidths[i]÷2-1]])
+        end
+    end
+    tmp = Tuple(tmp)
     tmp = Iterators.product(tmp...)
     freq = Matrix{Int}(undef, d, prod(bandwidths))
     for (idx, x) in enumerate(tmp)
@@ -66,18 +87,18 @@ function nfft_index_set(bandwidths::Vector{Int})::Array{Int}
     return freq
 end
 
-
 """
-`mask = nfft_index_set(bandwidths)`
+`mask = nfct_index_set(bandwidths)`
 
 # Input:
  * `bandwidths::Vector{Int}`
+ * `dcos::Vector{Bool}`
 
 # Output:
  * `mask::BitArray{1}` ... mask with size of the full cube having zeros whereever a frequency has at least one zero-element and vice-versa
 """
-function nfft_mask(bandwidths::Vector{Int})::BitArray{1}
-    freq = nfft_index_set(bandwidths)
+function nffct_mask(bandwidths::Vector{Int}, dcos::Vector{Bool})::BitArray{1}
+    freq = nffct_index_set(bandwidths, dcos)
     nfft_mask = BitArray{1}
     if length(size(freq)) == 1
         return (freq .!= 0)
@@ -87,7 +108,7 @@ function nfft_mask(bandwidths::Vector{Int})::BitArray{1}
 end
 
 """
-trafos::Vector{LinearMap{ComplexF64}}
+trafos::Vector{LinearMap{Float64}}
 This vector is local to the module on every worker.  It stores the transformations in order to access them later.
 """
 trafos = Vector{LinearMap{ComplexF64}}(undef, 1)
@@ -98,11 +119,12 @@ trafos = Vector{LinearMap{ComplexF64}}(undef, 1)
 # Input:
  * `bandwidths::Vector{Int}`
  * `X::Array{Float64}` ... nodes in |u| x M format
+ * `dcos::Vector{Bool}`
 
 # Output:
- * `F::LinearMap{ComplexF64}` ... Linear map of the Fourier-transform implemented by the NFFT
+ * `F::LinearMap{Float64}` ... Linear map of the Fourier-transform implemented by the NFCT
 """
-function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::Int64
+function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, dcos::Vector{Bool})::Int64
     if size(X, 1) == 1
         X = vec(X)
         d = 1
@@ -118,21 +140,26 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::Int64
         return idx
     end
 
-    mask = nfft_mask(bandwidths)
+    mask = nffct_mask(bandwidths, dcos)
     N = Tuple(bandwidths)
-    plan = NFFT(N, M, Tuple(2 * collect(N)), 5)
+    for i = range(1:length(dcos))
+        if dcos[i]
+            N[i] *= 2
+        end
+    end
+    plan = NFFCT(Tuple(dcos), N, M, Tuple(2 * collect(N)), 12)
     plan.x = X
 
     function trafo(fhat::Vector{ComplexF64})::Vector{ComplexF64}
         plan.fhat = zeros(ComplexF64, length(mask))
         plan.fhat[mask] = fhat
-        nfft_trafo(plan)
+        nffct_trafo(plan)
         return plan.f
     end
 
     function adjoint(f::Vector{ComplexF64})::Vector{ComplexF64}
         plan.f = f
-        nfft_adjoint(plan)
+        nffct_adjoint(plan)
         return plan.fhat[mask]
     end
 
@@ -143,17 +170,32 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::Int64
     return idx
 end
 
+function get_phi(x::Vector{Float64}, k::Vector{Int64}, dcos::Vector{Bool})::ComplexF64
+    p = 1
+    for i = range(1,length(dcos))
+        if (dcos[i])
+            if k[i] ≠ 0
+                p *= sqrt(2.0)*cos(2*pi*k[i]*x[i])
+            end
+        else
+            p *= exp(-2.0*pi*im*k[i]*x[i])
+        end
+    end
+    return p
+end
+
 """
 `F = get_matrix(bandwidths, X)
 
 # Input:
  * `bandwidths::Vector{Int}`
  * `X::Array{Float64}` ... nodes in |u| x M format
+ * `dcos::Vector{Bool}`
 
 # Output:
  * `F::Array{ComplexF64}` ... Matrix of the Fourier-transform
 """
-function get_matrix(bandwidths::Vector{Int}, X::Array{Float64})::Array{ComplexF64}
+function get_matrix(bandwidths::Vector{Int}, X::Array{Float64}, dcos::Vector{Bool})::Array{ComplexF64}
     if size(X, 1) == 1
         X = vec(X)
         d = 1
@@ -163,16 +205,18 @@ function get_matrix(bandwidths::Vector{Int}, X::Array{Float64})::Array{ComplexF6
     end
 
     if bandwidths == []
-        return ones(ComplexF64, M, 1)
+        return ones(Float64, M, 1)
     end
 
     if d == 1
-        freq = nfft_index_set_without_zeros(bandwidths)
-        F_direct = [exp(-2im * pi * (x * n)) for x in vec(X), n in freq]
+        freq = nffct_index_set_without_zeros(bandwidths, dcos)
+        F_direct = [get_phi(append!(Vector{Float64}(),x), append!(Vector{Int}(),n), dcos) for x in vec(X), n in freq]
     else
-        freq = nfft_index_set_without_zeros(bandwidths)
-        F_direct = [exp(-2im * pi * sum(x .* n)) for x in eachcol(X), n in eachcol(freq)]
+        freq = nffct_index_set_without_zeros(bandwidths, dcos)
+        F_direct = [get_phi(Vector(x), Vector(n), dcos) for x in eachcol(X), n in eachcol(freq)]
     end
+
     return F_direct
-end
+end 
+
 end

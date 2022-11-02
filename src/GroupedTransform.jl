@@ -5,35 +5,47 @@ using SparseArrays
 A struct to describe a GroupedTransformation
 
 # Fields
-* `system::String` - choice of `"exp"` or `"cos"` or `"chui1"` or `"chui2"` or `"chui3"` or `"chui4"`
-* `setting::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}` - vector of the dimensions, mode, and bandwidths for each term/group, see also [`get_setting(system::String,d::Int,ds::Int,N::Vector{Int})::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}`](@ref) and [`get_setting(system::String,U::Vector{Vector{Int}},N::Vector{Int})::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}`](@ref)
+* `system::String` - choice of `"exp"` or `"cos"` or `"chui1"` or `"chui2"` or `"chui3"` or `"chui4"` or `"expcos"`
+* `setting::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}}` - vector of the dimensions, mode, bandwidths and bases for each term/group, see also [`get_setting(system::String,d::Int,ds::Int,N::Vector{Int},dcos::Vector{Bool})::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}}`](@ref) and [`get_setting(system::String,U::Vector{Vector{Int}},N::Vector{Int},dcos::Vector{Bool})::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}}`](@ref)
 * `X::Array{Float64}` - array of nodes
 * `transforms::Vector{Tuple{Int64,Int64}}` - holds the low-dimensional sub transformations
+* `dcos::Vector{Bool}` - holds for every dimension if a cosinus basis [true] or exponential basis [false] is used
 
 # Constructor
-    GroupedTransform( system, setting, X )
+    GroupedTransform( system, setting, X, dcos::Vector{Bool} = Vector{Bool}([]) )
 
 # Additional Constructor
-    GroupedTransform( system, d, ds, N::Vector{Int}, X )
-    GroupedTransform( system, U, N, X )
+    GroupedTransform( system, d, ds, N::Vector{Int}, X, dcos::Vector{Bool} = Vector{Bool}([]) )
+    GroupedTransform( system, U, N, X, dcos::Vector{Bool} = Vector{Bool}([]) )
 """
 struct GroupedTransform
     system::String
     setting::Vector{
-        NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}},
+        NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}
     }
     X::Array{Float64}
     transforms::Vector{Tuple{Int64,Int64}}
+    dcos::Vector{Bool}
 
     function GroupedTransform(
         system::String,
         setting::Vector{
-            NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}},
+            NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}
         },
-        X::Array{Float64}
+        X::Array{Float64},
+        dcos::Vector{Bool} = Vector{Bool}([]),
     )
         if !haskey(systems, system)
             error("System not found.")
+        end
+
+        if system == "expcos"
+            if length(dcos) == 0
+                error("please call GroupedTransform with dcos for a NFFCT transform.")
+            end
+            if length(dcos) != d
+                error("dcos must have an entry for every dimension.")
+            end
         end
 
         if (system == "exp"  || system =="chui1" || system =="chui2"||system =="chui3"||system =="chui4")
@@ -43,6 +55,13 @@ struct GroupedTransform
         elseif system == "cos"
             if (minimum(X) < 0) || (maximum(X) > 0.5)
                 error("Nodes must be between 0 and 0.5.")
+            end
+        elseif system == "expcos"
+            if (minimum(X[dcos,:]) < 0) || (maximum(X[dcos,:]) > 1)
+                error("Nodes must be between 0 and 0.5 for cosinus dimensions.")
+            end
+            if (minimum(X[(.!dcos),:]) < -0.5) || (maximum(X[(.!dcos),:]) > 0.5)
+                error("Nodes must be between -0.5 and 0.5 for exponentional dimensions.")
             end
         end
 
@@ -59,6 +78,8 @@ struct GroupedTransform
                 f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], 3))
             elseif system =="chui4"
                 f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], 4))
+            elseif system == "expcos"
+                f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], s[:bases]))
             else
                 f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :]))
             end
@@ -70,7 +91,7 @@ struct GroupedTransform
         for (idx, s) in enumerate(setting)
             transforms[idx] = (f[idx][1], fetch(f[idx][2]))
         end
-        new(system, setting, X, transforms)
+        new(system, setting, X, transforms, dcos)
     end
 end
 
@@ -80,10 +101,11 @@ function GroupedTransform(
     ds::Int,
     N::Vector{Int},
     X::Array{Float64},
+    dcos::Vector{Bool} = Vector{Bool}([]),
     #m::Int64 = 1,
 )
-    s = get_setting(system, d, ds, N)
-    return GroupedTransform(system, s, X)
+    s = get_setting(system, d, ds, N, dcos)
+    return GroupedTransform(system, s, X, dcos)
 end
 
 function GroupedTransform(
@@ -91,10 +113,11 @@ function GroupedTransform(
     U::Vector{Vector{Int}},
     N::Vector{Int},
     X::Array{Float64},
+    dcos::Vector{Bool} = Vector{Bool}([]),
     #m::Int64 = 1,
 )
-    s = get_setting(system, U, N)
-    return GroupedTransform(system, s, X)
+    s = get_setting(system, U, N, dcos)
+    return GroupedTransform(system, s, X, dcos)
 end
 
 @doc raw"""
@@ -155,7 +178,7 @@ function Base.:getindex(F::GroupedTransform, u::Vector{Int})#::LinearMap{<:Numbe
         error("This term is not contained")
     else
         if F.system == "cos"
-            function trafo_cos(fhat::Vector{Float64})::Vector{Float64}
+            function trafo(fhat::Vector{Float64})::Vector{Float64}
                 return remotecall_fetch(
                     F.setting[idx][:mode].trafos[F.transforms[idx][2]],
                     F.transforms[idx][1],
@@ -163,7 +186,7 @@ function Base.:getindex(F::GroupedTransform, u::Vector{Int})#::LinearMap{<:Numbe
                 )
             end
 
-            function adjoint_cos(f::Vector{Float64})::Vector{Float64}
+            function adjoint(f::Vector{Float64})::Vector{Float64}
                 return remotecall_fetch(
                     F.setting[idx][:mode].trafos[F.transforms[idx][2]]',
                     F.transforms[idx][1],
@@ -173,9 +196,9 @@ function Base.:getindex(F::GroupedTransform, u::Vector{Int})#::LinearMap{<:Numbe
 
             N = prod(F.setting[idx][:bandwidths] .- 1)
             M = size(F.X, 2)
-            return LinearMap{Float64}(trafo_cos, adjoint_cos, M, N)
-        elseif F.system == "exp"
-            function trafo_exp(fhat::Vector{ComplexF64})::Vector{ComplexF64}
+            return LinearMap{Float64}(trafo, adjoint, M, N)
+        elseif (F.system == "exp" || F.system == "expcos")
+            function trafo(fhat::Vector{ComplexF64})::Vector{ComplexF64}
                 return remotecall_fetch(
                     F.setting[idx][:mode].trafos[F.transforms[idx][2]],
                     F.transforms[idx][1],
@@ -183,7 +206,7 @@ function Base.:getindex(F::GroupedTransform, u::Vector{Int})#::LinearMap{<:Numbe
                 )
             end
 
-            function adjoint_exp(f::Vector{ComplexF64})::Vector{ComplexF64}
+            function adjoint(f::Vector{ComplexF64})::Vector{ComplexF64}
                 return remotecall_fetch(
                     F.setting[idx][:mode].trafos[F.transforms[idx][2]]',
                     F.transforms[idx][1],
@@ -193,7 +216,7 @@ function Base.:getindex(F::GroupedTransform, u::Vector{Int})#::LinearMap{<:Numbe
 
             N = prod(F.setting[idx][:bandwidths] .- 1)
             M = size(F.X, 2)
-            return LinearMap{ComplexF64}(trafo_exp, adjoint_exp, M, N)
+            return LinearMap{ComplexF64}(trafo, adjoint, M, N)
 
         elseif F.system == "chui1" || F.system == "chui2"  || F.system == "chui3"||F.system == "chui4"
             #S = SparseMatrixCSC{Float64, Int}

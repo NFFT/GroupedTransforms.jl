@@ -10,7 +10,7 @@ A struct to hold complex coefficients belonging to indices in a grouped index se
 ```
 
 # Fields
-* `setting::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}` - uniquely describes the setting such as the bandlimits ``N_{\pmb u}``, see also [`get_setting(system::String,d::Int,ds::Int,N::Vector{Int})::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}`](@ref) and [`get_setting(system::String,U::Vector{Vector{Int}},N::Vector{Int})::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}`](@ref)
+* `setting::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}}` - uniquely describes the setting such as the bandlimits ``N_{\pmb u}``, see also [`get_setting(system::String,d::Int,ds::Int,N::Vector{Int},dcos::Vector{Bool})::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}}`](@ref) and [`get_setting(system::String,U::Vector{Vector{Int}},N::Vector{Int},dcos::Vector{Bool})::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}}`](@ref)
 * `data::Union{Vector{ComplexF64},Nothing}` - the vector of coefficients
 
 # Constructor
@@ -21,7 +21,7 @@ A struct to hold complex coefficients belonging to indices in a grouped index se
 """
 struct GroupedCoefficientsComplex <: GroupedCoefficients
     setting::Vector{
-        NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}},
+        NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}
     }
     data::Vector{ComplexF64}
 
@@ -54,7 +54,7 @@ A struct to hold real valued coefficients belonging to indices in a grouped inde
 ```
 
 # Fields
-* `setting::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}` - uniquely describes the setting such as the bandlimits ``N_{\pmb u}``, see also [`get_setting(system::String,d::Int,ds::Int,N::Vector{Int})::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}`](@ref) and [`get_setting(system::String,U::Vector{Vector{Int}},N::Vector{Int})::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}`](@ref)
+* `setting::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}}` - uniquely describes the setting such as the bandlimits ``N_{\pmb u}``, see also [`get_setting(system::String,d::Int,ds::Int,N::Vector{Int},dcos::Vector{Bool})::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}}`](@ref) and [`get_setting(system::String,U::Vector{Vector{Int}},N::Vector{Int},dcos::Vector{Bool})::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}}`](@ref)
 * `data::Union{Vector{Float64},Nothing}` - the vector of coefficients
 
 # Constructor
@@ -65,7 +65,7 @@ A struct to hold real valued coefficients belonging to indices in a grouped inde
 """
 struct GroupedCoefficientsReal <: GroupedCoefficients
     setting::Vector{
-        NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}},
+        NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}
     }
     data::Vector{Float64}
 
@@ -90,11 +90,11 @@ end
 
 function GroupedCoefficients(
     setting::Vector{
-        NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}},
+        NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}
     },
     data::Union{Vector{ComplexF64},Vector{Float64},Nothing} = nothing,
 )
-    if setting[1][:mode] == NFFTtools
+    if (setting[1][:mode] == NFFTtools || setting[1][:mode] == NFFCTtools)
         return GroupedCoefficientsComplex(setting, data)
     elseif (setting[1][:mode] == NFCTtools  || setting[1][:mode] == CWWTtools )
         return GroupedCoefficientsReal(setting, data)
