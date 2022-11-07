@@ -89,9 +89,6 @@ struct GroupedTransform
         end
 
         for (idx, s) in enumerate(setting)
-            println(idx)
-            println(f[idx][1])
-            println(fetch(f[idx][2]))
             transforms[idx] = (f[idx][1], fetch(f[idx][2]))
         end
         new(system, setting, X, transforms, dcos)
@@ -237,10 +234,10 @@ This function returns the actual matrix of the transformation. This is not avail
 """
 function get_matrix(F::GroupedTransform)::Matrix{<:Number}
     s1 = F.setting[1]
-    F_direct = s1[:mode].get_matrix(s1[:bandwidths], F.X[s1[:u], :])
+    F_direct = s1[:mode].get_matrix(s1[:bandwidths], F.X[s1[:u], :], s1[:bases])
     for (idx, s) in enumerate(F.setting)
         idx == 1 && continue
-        F_direct = hcat(F_direct, s[:mode].get_matrix(s[:bandwidths], F.X[s[:u], :]))
+        F_direct = hcat(F_direct, s[:mode].get_matrix(s[:bandwidths], F.X[s[:u], :], s[:bases]))
     end
     return F_direct
 end
