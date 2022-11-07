@@ -12,5 +12,5 @@ X = rand(d, M)
 
 X[.!dcos,:] = X[.!dcos,:] .- 0.5
 
-F = GroupedTransform("expcos", d, ds, [2^10, 2^6, 2^4, 4], X)
+F = GroupedTransform("expcos", d, ds, [2^6, 2^4, 4], X, dcos)
 F_direct = get_matrix(F)

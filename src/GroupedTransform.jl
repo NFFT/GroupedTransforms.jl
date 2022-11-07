@@ -43,7 +43,7 @@ struct GroupedTransform
             if length(dcos) == 0
                 error("please call GroupedTransform with dcos for a NFFCT transform.")
             end
-            if length(dcos) != d
+            if length(dcos) != size(X)[1]
                 error("dcos must have an entry for every dimension.")
             end
         end
