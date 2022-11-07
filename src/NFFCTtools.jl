@@ -162,6 +162,7 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, dcos::Vector{
         println("length")
         println(length(fhat))
         println(sum(mask))
+        println(length(mask))
         plan.fhat = zeros(ComplexF64, length(mask))
         plan.fhat[mask] = fhat
         nffct_trafo(plan)
