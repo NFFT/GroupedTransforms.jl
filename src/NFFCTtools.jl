@@ -140,13 +140,13 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, dcos::Vector{
         return idx
     end
 
-    mask = nffct_mask(bandwidths, dcos)
+    for (idx, s) in enumerate(dcos)
+        if s
+            bandwidths[idx] *= 2
+        end
+    end
 
-    #for (idx, s) in enumerate(dcos)
-    #    if s
-    #        bandwidths[idx] *= 2
-    #    end
-    #end
+    mask = nffct_mask(bandwidths, dcos)
 
     N = Tuple(bandwidths)
     plan = NFFCT(Tuple(dcos), N, M, Tuple(2 * collect(N)), 5)
