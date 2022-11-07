@@ -88,11 +88,10 @@ struct GroupedTransform
             end
         end
 
-        println(length(setting))
-        println(f[1][1])
-        println(fetch(f[1][2]))
-
         for (idx, s) in enumerate(setting)
+            println(idx)
+            println(f[idx][1])
+            println(fetch(f[idx][2]))
             transforms[idx] = (f[idx][1], fetch(f[idx][2]))
         end
         new(system, setting, X, transforms, dcos)
