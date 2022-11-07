@@ -88,7 +88,7 @@ struct GroupedTransform
             end
         end
 
-        printf(f)
+        println(f)
 
         for (idx, s) in enumerate(setting)
             transforms[idx] = (f[idx][1], fetch(f[idx][2]))
