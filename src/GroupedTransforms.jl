@@ -45,6 +45,8 @@ function get_setting(
     tmp = vcat([0], N)
     U = GroupedTransforms.get_superposition_set(d, ds)
     bandwidths = [fill(tmp[length(u)+1], length(u)) for u in U]
+    println("neu")
+    println(bandwidths)
     if systems[system] == NFFCTtools
         if length(dcos) == 0
             error("please call get_setting with dcos for a NFFCT transform.")
