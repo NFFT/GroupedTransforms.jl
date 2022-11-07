@@ -142,8 +142,8 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, dcos::Vector{
 
     mask = nffct_mask(bandwidths, dcos)
     N = Tuple(bandwidths)
-    printf(N)
-    printf(dcos)
+    println(N)
+    println(dcos)
     for (idx, s) in enumerate(dcos)
         if s
             N[idx] *= 2
