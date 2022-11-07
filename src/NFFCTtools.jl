@@ -36,11 +36,11 @@ function nffct_index_set_without_zeros(bandwidths::Vector{Int}, dcos::Vector{Boo
     bandwidths = reverse(bandwidths)
     dcos = reverse(dcos)
     tmp = Vector{Vector{Int64}}()
-    for i = range(1,d)
-        if dcos[i]
-            append!(tmp, [[1:1; 2:bandwidths[i]-1]])
+    for (idx, s) in enumerate(dcos)
+        if s
+            append!(tmp, [[1:1; 2:bandwidths[idx]-1]])
         else
-            append!(tmp, [[-bandwidths[i]÷2:-1; 1:bandwidths[i]÷2-1]])
+            append!(tmp, [[-bandwidths[idx]÷2:-1; 1:bandwidths[idx]÷2-1]])
         end
     end
     tmp = Tuple(tmp)
@@ -142,9 +142,9 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, dcos::Vector{
 
     mask = nffct_mask(bandwidths, dcos)
     N = Tuple(bandwidths)
-    for i = range(1:length(dcos))
-        if dcos[i]
-            N[i] *= 2
+    for (idx, s) in enumerate(dcos)
+        if s
+            N[idx] *= 2
         end
     end
     plan = NFFCT(Tuple(dcos), N, M, Tuple(2 * collect(N)), 12)
@@ -172,13 +172,13 @@ end
 
 function get_phi(x::Vector{Float64}, k::Vector{Int64}, dcos::Vector{Bool})::ComplexF64
     p = 1
-    for i = range(1,length(dcos))
-        if (dcos[i])
-            if k[i] ≠ 0
-                p *= sqrt(2.0)*cos(2*pi*k[i]*x[i])
+    for (idx, s) in enumerate(dcos)
+        if s
+            if k[idx] ≠ 0
+                p *= sqrt(2.0)*cos(2*pi*k[idx]*x[idx])
             end
         else
-            p *= exp(-2.0*pi*im*k[i]*x[i])
+            p *= exp(-2.0*pi*im*k[idx]*x[idx])
         end
     end
     return p
