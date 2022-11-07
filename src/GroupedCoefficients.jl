@@ -30,6 +30,11 @@ struct GroupedCoefficientsComplex <: GroupedCoefficients
         data::Union{Vector{ComplexF64},Nothing} = nothing,
     )
         try
+			println("test")
+			for s = setting
+				println(s[:bandwidths])
+				println(s[:mode].datalength(s[:bandwidths]))
+			end
             N = sum(s -> s[:mode].datalength(s[:bandwidths]), setting)
             if isnothing(data)
                 data = zeros(ComplexF64, N)
