@@ -1,20 +1,23 @@
 using LinearAlgebra
-using GroupedTransforms
-using Test
 
 d = 4
-
 ds = 3
 
 dcos = [true,false,true,false]
 
 M = 1_000
+
 X = rand(d, M)
 X[.!dcos,:] = X[.!dcos,:] .- 0.5
 
+U = Vector{Vector{Int64}}(undef, 3)
+U[1] = []
+U[2] = [1]
+U[3] = [1, 2]
+
 # set up transform ###################################################
 
-F = GroupedTransform("expcos", d, ds, [2^6, 2^4, 4], X, dcos)
+F = GroupedTransform("expcos", U, [0, 64, 16], X, dcos)
 F_direct = get_matrix(F)
 
 # compute transform with NFFT ########################################
