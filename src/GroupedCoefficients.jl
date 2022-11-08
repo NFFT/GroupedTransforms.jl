@@ -26,7 +26,7 @@ struct GroupedCoefficientsComplex <: GroupedCoefficients
     data::Vector{ComplexF64}
 
     function GroupedCoefficientsComplex(
-        setting,
+        setting::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}},
         data::Union{Vector{ComplexF64},Nothing} = nothing,
     )
         try
@@ -70,7 +70,7 @@ struct GroupedCoefficientsReal <: GroupedCoefficients
     data::Vector{Float64}
 
     function GroupedCoefficientsReal(
-        setting,
+        setting::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}},
         data::Union{Vector{Float64},Nothing} = nothing,
     )
         try
