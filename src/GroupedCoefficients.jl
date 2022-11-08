@@ -31,7 +31,6 @@ struct GroupedCoefficientsComplex <: GroupedCoefficients
     )
         try
             N = sum(s -> s[:mode].datalength(s[:bandwidths]), setting)
-            println(N)
 			if isnothing(data)
                 data = zeros(ComplexF64, N)
             end

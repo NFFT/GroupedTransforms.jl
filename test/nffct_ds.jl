@@ -16,6 +16,11 @@ X[.!dcos,:] = X[.!dcos,:] .- 0.5
 # set up transform ###################################################
 
 F = GroupedTransform("expcos", d, ds, [2^6, 2^4, 4], X, dcos)
+for s = F.setting
+    println("######")
+    println(s[:bandwidths])
+    println(s[:mode].datalength(s[:bandwidths]))
+end
 F_direct = get_matrix(F)
 
 # compute transform with NFFT ########################################
@@ -44,7 +49,7 @@ GroupedTransforms.set_data!(fhat, ghat.data)
 
 ###
 
-f = F * fhat
+#f = F * fhat
 
 # compute transform without NFFT #####################################
 
