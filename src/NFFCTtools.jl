@@ -133,7 +133,7 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, dcos::Vector{
         (d, M) = size(X)
     end
 
-    if bandwidths == []
+    if b == []
         idx = length(trafos)
         trafos[idx] = LinearMap{ComplexF64}(fhat -> fill(fhat[1], M), f -> [sum(f)], M, 1)
         append!(trafos, Vector{LinearMap{ComplexF64}}(undef, 1))
@@ -142,14 +142,15 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, dcos::Vector{
 
     mask = nffct_mask(bandwidths, dcos)
 
+    b = copy(bandwidths)
     for (idx, s) in enumerate(dcos)
         if s
-            bandwidths[idx] *= 2
+            b[idx] *= 2
         end
     end
 
-    N = Tuple(bandwidths)
-    plan = NFFCT(Tuple(dcos), N, M, Tuple(2 * collect(N)), 5)
+    N2 = Tuple(b)
+    plan = NFFCT(Tuple(dcos), N2, M, Tuple(2 * collect(N2)), 5)
     plan.x = X
 
     function trafo(fhat::Vector{ComplexF64})::Vector{ComplexF64}
