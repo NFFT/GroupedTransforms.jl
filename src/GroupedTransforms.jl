@@ -88,7 +88,7 @@ function get_setting(
         if length(dcos) == 0
             error("please call get_setting with dcos for a NFFCT transform.")
         end
-        if length(dcos) != maximum(U)[1]
+        if length(dcos) < maximum(U)[1]
             error("dcos must have an entry for every dimension.")
         end
         return [
