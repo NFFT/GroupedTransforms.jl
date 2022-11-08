@@ -54,6 +54,7 @@ function get_setting(
         if length(dcos) != d
             error("dcos must have an entry for every dimension.")
         end
+        println((u = U[idx], mode = systems[system], bandwidths = bandwidths[idx], bases = dcos[U[idx]]) for idx = 1:length(U))
         return [
             (u = U[idx], mode = systems[system], bandwidths = bandwidths[idx], bases = dcos[U[idx]]) for idx = 1:length(U)
         ]       
