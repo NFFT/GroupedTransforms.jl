@@ -133,7 +133,7 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, dcos::Vector{
         (d, M) = size(X)
     end
 
-    if b == []
+    if bandwidths == []
         idx = length(trafos)
         trafos[idx] = LinearMap{ComplexF64}(fhat -> fill(fhat[1], M), f -> [sum(f)], M, 1)
         append!(trafos, Vector{LinearMap{ComplexF64}}(undef, 1))
