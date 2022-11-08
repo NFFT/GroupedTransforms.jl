@@ -145,6 +145,10 @@ function Base.:*(F::GroupedTransform, fhat::GroupedCoefficients)::Vector{<:Numbe
                                         (fhat[F.setting[i][:u]])
     end
 
+    for i = 1:length(F.transforms)
+        println(fetch(f[i]))
+    end
+
     return sum(i -> fetch(f[i]), 1:length(F.transforms))
 end
 
