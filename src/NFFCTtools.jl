@@ -157,6 +157,7 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, dcos::Vector{
         plan.fhat = zeros(ComplexF64, length(mask))
         plan.fhat[mask] = fhat
         println(fhat)
+        println(mask)
         println(plan.fhat)
         println(plan.x)
         println(plan.dcos)
