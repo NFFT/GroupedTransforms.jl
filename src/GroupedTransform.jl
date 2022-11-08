@@ -59,8 +59,6 @@ struct GroupedTransform
                 error("Nodes must be between 0 and 0.5.")
             end
         elseif system == "expcos"
-            println(sum(dcos))
-            println(sum(.!dcos))
             if sum(dcos)>0 
                 if (minimum(X[dcos,:]) < 0) || (maximum(X[dcos,:]) > 1)
                     error("Nodes must be between 0 and 0.5 for cosinus dimensions.")
@@ -145,6 +143,10 @@ function Base.:*(F::GroupedTransform, fhat::GroupedCoefficients)::Vector{<:Numbe
         f[i] =
             @spawnat F.transforms[i][1] (F.setting[i][:mode].trafos[F.transforms[i][2]]) *
                                         (fhat[F.setting[i][:u]])
+    end
+
+    for i = 1:length(F.transforms)
+        println(fetch(f[i]))
     end
 
     return sum(i -> fetch(f[i]), 1:length(F.transforms))
