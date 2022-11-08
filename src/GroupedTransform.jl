@@ -36,11 +36,7 @@ struct GroupedTransform
         dcos::Vector{Bool} = Vector{Bool}([]),
     )
 
-        for k = setting
-            println("vvvvvvvv")
-            println(k[:bandwidths])
-            println(k[:mode].datalength(k[:bandwidths]))
-        end
+        
         if !haskey(systems, system)
             error("System not found.")
         end
@@ -70,7 +66,11 @@ struct GroupedTransform
                 error("Nodes must be between -0.5 and 0.5 for exponentional dimensions.")
             end
         end
-
+        for k = setting
+            println("vvvvvvvv")
+            println(k[:bandwidths])
+            println(k[:mode].datalength(k[:bandwidths]))
+        end
         transforms = Vector{Tuple{Int64,Int64}}(undef, length(setting))
         f = Vector{Tuple{Int64,Future}}(undef, length(setting))
         w = (nworkers() == 1) ? 1 : 2
