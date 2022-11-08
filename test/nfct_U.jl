@@ -37,7 +37,7 @@ fhat[1] = 1.0
 2 * fhat
 fhat + ghat
 fhat - ghat
-F[[1, 2]]
+#F[[1, 2]]
 GroupedTransforms.set_data!(fhat, ghat.data)
 
 ###
