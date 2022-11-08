@@ -35,6 +35,12 @@ struct GroupedTransform
         X::Array{Float64},
         dcos::Vector{Bool} = Vector{Bool}([]),
     )
+
+        for k = setting
+            println("vvvvvvvv")
+            println(k[:bandwidths])
+            println(k[:mode].datalength(k[:bandwidths]))
+        end
         if !haskey(systems, system)
             error("System not found.")
         end
@@ -91,6 +97,12 @@ struct GroupedTransform
         for (idx, s) in enumerate(setting)
             transforms[idx] = (f[idx][1], fetch(f[idx][2]))
         end
+
+        for k = setting
+            println("nnnnnnn")
+            println(k[:bandwidths])
+            println(k[:mode].datalength(k[:bandwidths]))
+        end
         new(system, setting, X, transforms, dcos)
     end
 end
@@ -105,11 +117,6 @@ function GroupedTransform(
     #m::Int64 = 1,
 )
     s = get_setting(system, d, ds, N, dcos)
-    for k = s
-        println("!!!!!!!!")
-        println(k[:bandwidths])
-        println(k[:mode].datalength(k[:bandwidths]))
-    end
     return GroupedTransform(system, s, X, dcos)
 end
 
