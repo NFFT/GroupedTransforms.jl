@@ -184,7 +184,7 @@ function get_phi(x::Vector{Float64}, k::Vector{Int64}, dcos::Vector{Bool})::Comp
     for (idx, s) in enumerate(dcos)
         if s
             if k[idx] ≠ 0
-                p *= sqrt(2.0)*cos(2*pi*k[idx]*x[idx])
+                p *= sqrt(2.0)*cos(pi*k[idx]*x[idx])
             end
         else
             p *= exp(-2.0*pi*im*k[idx]*x[idx])
