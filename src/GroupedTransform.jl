@@ -91,9 +91,6 @@ struct GroupedTransform
         end
 
         for (idx, s) in enumerate(setting)
-            println(idx)
-            println(f[idx][1])
-            println(fetch(f[idx][2]))
             transforms[idx] = (f[idx][1], fetch(f[idx][2]))
         end
 
@@ -141,11 +138,6 @@ function Base.:*(F::GroupedTransform, fhat::GroupedCoefficients)::Vector{<:Numbe
         f[i] =
             @spawnat F.transforms[i][1] (F.setting[i][:mode].trafos[F.transforms[i][2]]) *
                                         (fhat[F.setting[i][:u]])
-    end
-
-    for i = 1:length(F.transforms)
-        println(i)
-        println(fetch(f[i]))
     end
 
     return sum(i -> fetch(f[i]), 1:length(F.transforms))
