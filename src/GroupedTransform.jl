@@ -59,10 +59,10 @@ struct GroupedTransform
                 error("Nodes must be between 0 and 0.5.")
             end
         elseif system == "expcos"
-            if (minimum(X[dcos,:]) < 0) || (maximum(X[dcos,:]) > 1)
+            if sum(dcos)>0 && (minimum(X[dcos,:]) < 0) || (maximum(X[dcos,:]) > 1)
                 error("Nodes must be between 0 and 0.5 for cosinus dimensions.")
             end
-            if (minimum(X[(.!dcos),:]) < -0.5) || (maximum(X[(.!dcos),:]) > 0.5)
+            if sum(!dcos)>0 && (minimum(X[(.!dcos),:]) < -0.5) || (maximum(X[(.!dcos),:]) > 0.5)
                 error("Nodes must be between -0.5 and 0.5 for exponentional dimensions.")
             end
         end
