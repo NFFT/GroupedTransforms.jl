@@ -70,7 +70,11 @@ struct GroupedTransform
         transforms = Vector{Tuple{Int64,Int64}}(undef, length(setting))
         f = Vector{Tuple{Int64,Future}}(undef, length(setting))
         w = (nworkers() == 1) ? 1 : 2
-
+        for k = setting
+            println("vvvvvvvv")
+            println(k[:bandwidths])
+            println(k[:mode].datalength(k[:bandwidths]))
+        end
         for (idx, s) in enumerate(setting)
             if system =="chui1"
                 f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], 1 ))
@@ -89,7 +93,11 @@ struct GroupedTransform
                 w = (w == nworkers()) ? 2 : (w + 1)
             end
         end
-
+        for k = setting
+            println("nnnnnnn")
+            println(k[:bandwidths])
+            println(k[:mode].datalength(k[:bandwidths]))
+        end
         for (idx, s) in enumerate(setting)
             transforms[idx] = (f[idx][1], fetch(f[idx][2]))
         end
