@@ -105,6 +105,11 @@ function GroupedTransform(
     #m::Int64 = 1,
 )
     s = get_setting(system, d, ds, N, dcos)
+    for k = s
+        println("!!!!!!!!")
+        println(k[:bandwidths])
+        println(k[:mode].datalength(k[:bandwidths]))
+    end
     return GroupedTransform(system, s, X, dcos)
 end
 
