@@ -154,6 +154,7 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, dcos::Vector{
     println(X)
     plan.x = X
     println(plan.x)
+    println(plan.NFFT_struct.x)
 
     function trafo(fhat::Vector{ComplexF64})::Vector{ComplexF64}
         fh = zeros(ComplexF64, length(mask))
