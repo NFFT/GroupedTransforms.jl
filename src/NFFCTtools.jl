@@ -141,7 +141,6 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, dcos::Vector{
     end
 
     mask = nffct_mask(bandwidths, dcos)
-    mask = [true,false]
 
     b = copy(bandwidths)
     for (idx, s) in enumerate(dcos)
