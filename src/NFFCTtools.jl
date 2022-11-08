@@ -152,6 +152,7 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, dcos::Vector{
     N2 = Tuple(b)
     plan = NFFCT(Tuple(dcos), N2, M, Tuple(2 * collect(N2)), 5)
     plan.x = X
+    println(X)
 
     function trafo(fhat::Vector{ComplexF64})::Vector{ComplexF64}
         plan.fhat = zeros(ComplexF64, length(mask))
