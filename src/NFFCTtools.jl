@@ -159,7 +159,7 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, dcos::Vector{
         plan.fhat = fh
 
         println(plan.dcos)
-        println(plan.X)
+        println(plan.x)
         println(plan.fhat)
 
         nffct_trafo(plan)
