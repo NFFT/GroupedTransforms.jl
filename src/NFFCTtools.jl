@@ -1,8 +1,7 @@
 module NFFCTtools
 
-#using NFFCT
-include("/home/arch/git/NFFT3.jl/src/NFFCT.jl")
 using LinearMaps
+using NFFT3
 
 """
 `N = datalength(bandwidths)`
