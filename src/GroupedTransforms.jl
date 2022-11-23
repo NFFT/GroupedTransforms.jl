@@ -101,6 +101,45 @@ function get_setting(
     end
 end
 
+function get_setting(
+    system::String,
+    U::Vector{Vector{Int}},
+    N::Vector{Vector{Int}},
+    dcos::Vector{Bool} = Vector{Bool}([]),
+)::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}}
+    if !haskey(systems, system)
+        error("System not found.")
+    end
+    bws = Vector{Vector{Int}}(undef, length(U))
+    for i = 1:length(U)
+        u = U[i]
+        if u == []
+            bws[i] = fill(0, length(u))
+        else
+            if length(N[i])!=length(u)
+                error("Vector N has for the set", u, "not the right length")
+            end
+            bws[i] = N[i]
+        end
+    end
+
+    if systems[system] == NFFCTtools
+        if length(dcos) == 0
+            error("please call get_setting with dcos for a NFFCT transform.")
+        end
+        if length(dcos) < maximum(U)[1]
+            error("dcos must have an entry for every dimension.")
+        end
+        return [
+            (u = U[idx], mode = systems[system], bandwidths = bws[idx], bases = dcos[U[idx]]) for idx = 1:length(U)
+        ]       
+    else
+        return [
+            (u = U[idx], mode = systems[system], bandwidths = bws[idx], bases = []) for idx = 1:length(U)
+        ]
+    end
+end
+
 function get_NumFreq(
     setting::Vector{
         NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}
