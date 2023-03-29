@@ -129,7 +129,7 @@ function Base.:*(F::GroupedTransform, fhat::GroupedCoefficients)::Vector{<:Numbe
         error("The GroupedTransform and the GroupedCoefficients have different settings")
     end
 
-    return sum(i -> f[i] = (F.setting[i][:mode].trafos[F.transforms[i]]) * (fhat[F.setting[i][:u]]), 1:length(F.transforms))
+    return sum(i -> (F.setting[i][:mode].trafos[F.transforms[i]]) * (fhat[F.setting[i][:u]]), 1:length(F.transforms))
 end
 
 @doc raw"""
