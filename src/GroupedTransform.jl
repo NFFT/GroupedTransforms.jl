@@ -130,7 +130,7 @@ function Base.:*(F::GroupedTransform, fhat::GroupedCoefficients)::Vector{<:Numbe
     end
     f = Vector{Future}(undef, length(F.transforms))
     for i = 1:length(F.transforms)
-        f[i] = (F.setting[i][:mode].trafos[F.transforms[i][2]]) * (fhat[F.setting[i][:u]])
+        f[i] = (F.setting[i][:mode].trafos[F.transforms[i]]) * (fhat[F.setting[i][:u]])
     end
 
     return sum(i -> f[i], 1:length(F.transforms))
@@ -144,7 +144,7 @@ Overloads the * notation in order to achieve the adjoint transform `f = F*f`.
 function Base.:*(F::GroupedTransform, f::Vector{<:Number})::GroupedCoefficients
     fh = Vector{Future}(undef, length(F.transforms))
     for i = 1:length(F.transforms)
-        fh[i] = (F.setting[i][:mode].trafos[F.transforms[i][2]])' * f
+        fh[i] = (F.setting[i][:mode].trafos[F.transforms[i]])' * f
     end
     fhat = GroupedCoefficients(F.setting)
     for i = 1:length(F.transforms)
@@ -174,11 +174,11 @@ function Base.:getindex(F::GroupedTransform, u::Vector{Int})#::LinearMap{<:Numbe
     else
         if F.system == "cos"
             function trafo(fhat::Vector{Float64})::Vector{Float64}
-                return F.setting[idx][:mode].trafos[F.transforms[idx][2]](fhat)
+                return F.setting[idx][:mode].trafos[F.transforms[idx]](fhat)
             end
 
             function adjoint(f::Vector{Float64})::Vector{Float64}
-                return F.setting[idx][:mode].trafos[F.transforms[idx][2]]'(f)
+                return F.setting[idx][:mode].trafos[F.transforms[idx]]'(f)
             end
 
             N = prod(F.setting[idx][:bandwidths] .- 1)
@@ -186,11 +186,11 @@ function Base.:getindex(F::GroupedTransform, u::Vector{Int})#::LinearMap{<:Numbe
             return LinearMap{Float64}(trafo, adjoint, M, N)
         elseif (F.system == "exp" || F.system == "expcos")
             function trafo(fhat::Vector{ComplexF64})::Vector{ComplexF64}
-                return F.setting[idx][:mode].trafos[F.transforms[idx][2]](fhat)
+                return F.setting[idx][:mode].trafos[F.transforms[idx]](fhat)
             end
 
             function adjoint(f::Vector{ComplexF64})::Vector{ComplexF64}
-                return F.setting[idx][:mode].trafos[F.transforms[idx][2]]'(f)
+                return F.setting[idx][:mode].trafos[F.transforms[idx]]'(f)
             end
 
             N = prod(F.setting[idx][:bandwidths] .- 1)
@@ -199,7 +199,7 @@ function Base.:getindex(F::GroupedTransform, u::Vector{Int})#::LinearMap{<:Numbe
 
         elseif F.system == "chui1" || F.system == "chui2"  || F.system == "chui3"||F.system == "chui4"
             #S = SparseMatrixCSC{Float64, Int}
-            S = (F.setting[idx][:mode].trafos[F.transforms[idx][2]])
+            S = (F.setting[idx][:mode].trafos[F.transforms[idx]])
             return SparseMatrixCSC{Float64, Int}(S)
         end
     end
