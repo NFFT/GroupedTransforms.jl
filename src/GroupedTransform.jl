@@ -128,12 +128,8 @@ function Base.:*(F::GroupedTransform, fhat::GroupedCoefficients)::Vector{<:Numbe
     if F.setting != fhat.setting
         error("The GroupedTransform and the GroupedCoefficients have different settings")
     end
-    f = Vector{Future}(undef, length(F.transforms))
-    for i = 1:length(F.transforms)
-        f[i] = (F.setting[i][:mode].trafos[F.transforms[i]]) * (fhat[F.setting[i][:u]])
-    end
 
-    return sum(i -> f[i], 1:length(F.transforms))
+    return sum(i -> f[i] = (F.setting[i][:mode].trafos[F.transforms[i]]) * (fhat[F.setting[i][:u]]), 1:length(F.transforms))
 end
 
 @doc raw"""
@@ -142,13 +138,9 @@ end
 Overloads the * notation in order to achieve the adjoint transform `f = F*f`.
 """
 function Base.:*(F::GroupedTransform, f::Vector{<:Number})::GroupedCoefficients
-    fh = Vector{Future}(undef, length(F.transforms))
-    for i = 1:length(F.transforms)
-        fh[i] = (F.setting[i][:mode].trafos[F.transforms[i]])' * f
-    end
     fhat = GroupedCoefficients(F.setting)
     for i = 1:length(F.transforms)
-        fhat[F.setting[i][:u]] = fh[i]
+        fhat[F.setting[i][:u]] = (F.setting[i][:mode].trafos[F.transforms[i]])' * f
     end
     return fhat
 end
