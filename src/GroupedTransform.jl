@@ -24,7 +24,7 @@ struct GroupedTransform
         NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}
     }
     X::Array{Float64}
-    transforms::Vector{Tuple{Int64,Int64}}
+    transforms::Vector{Int64}
     dcos::Vector{Bool}
 
     function GroupedTransform(
@@ -72,7 +72,7 @@ struct GroupedTransform
             end
         end
 
-        transforms = Vector{Tuple{Int64,Int64}}(undef, length(setting))
+        transforms = Vector{Int64}(undef,length(setting))
 
         for (idx, s) in enumerate(setting)
             if system =="chui1"
