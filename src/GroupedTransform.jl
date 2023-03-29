@@ -73,32 +73,22 @@ struct GroupedTransform
         end
 
         transforms = Vector{Tuple{Int64,Int64}}(undef, length(setting))
-        f = Vector{Tuple{Int64,Future}}(undef, length(setting))
-        w = (nworkers() == 1) ? 1 : 2
 
         for (idx, s) in enumerate(setting)
             if system =="chui1"
-                f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], 1 ))
+                transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], 1)
             elseif system =="chui2"
-                f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], 2))
+                transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], 2)
             elseif system =="chui3"
-                f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], 3))
+                transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], 3)
             elseif system =="chui4"
-                f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], 4))
+                transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], 4)
             elseif system == "expcos"
-                f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], s[:bases]))
+                transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], s[:bases])
             else
-                f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :]))
-            end
-            if nworkers() != 1
-                w = (w == nworkers()) ? 2 : (w + 1)
+                transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :])
             end
         end
-
-        for (idx, s) in enumerate(setting)
-            transforms[idx] = (f[idx][1], fetch(f[idx][2]))
-        end
-
 
         new(system, setting, X, transforms, dcos)
     end
