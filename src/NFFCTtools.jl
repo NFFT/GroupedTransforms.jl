@@ -21,12 +21,12 @@ end
 
 # Input:
  * `bandwidths::Vector{Int}`
- * `dcos::Vector{Bool}`
+ * `dcos::Vector{String}`
 
 # Output:
  * `freq::Array{Int}` ... all frequencies of the full cube without any vector having a zero entry
 """
-function nffct_index_set_without_zeros(bandwidths::Vector{Int}, dcos::Vector{Bool})::Array{Int}
+function nffct_index_set_without_zeros(bandwidths::Vector{Int}, dcos::Vector{String})::Array{Int}
     d = length(bandwidths)
     d == 0 && return [0]
     d == 1 && dcos[1] && return collect([1:1; 2:bandwidths[1]-1])
@@ -56,12 +56,12 @@ end
 
 # Input:
  * `bandwidths::Vector{Int}`
- * `dcos::Vector{Bool}`
+ * `dcos::Vector{String}`
 
 # Output:
  * `freq::Array{Int}` ... all frequencies of the full cube
 """
-function nffct_index_set(bandwidths::Vector{Int}, dcos::Vector{Bool})::Array{Int}
+function nffct_index_set(bandwidths::Vector{Int}, dcos::Vector{String})::Array{Int}
     d = length(bandwidths)
     d == 0 && return [0]
     d == 1 && dcos[1] && return collect([0:0; 1:bandwidths[1]-1])
@@ -91,12 +91,12 @@ end
 
 # Input:
  * `bandwidths::Vector{Int}`
- * `dcos::Vector{Bool}`
+ * `dcos::Vector{String}`
 
 # Output:
  * `mask::BitArray{1}` ... mask with size of the full cube having zeros whereever a frequency has at least one zero-element and vice-versa
 """
-function nffct_mask(bandwidths::Vector{Int}, dcos::Vector{Bool})::BitArray{1}
+function nffct_mask(bandwidths::Vector{Int}, dcos::Vector{String})::BitArray{1}
     freq = nffct_index_set(bandwidths, dcos)
     nfft_mask = BitArray{1}
     if length(size(freq)) == 1
@@ -118,12 +118,12 @@ trafos = Vector{LinearMap{ComplexF64}}(undef, 1)
 # Input:
  * `bandwidths::Vector{Int}`
  * `X::Array{Float64}` ... nodes in |u| x M format
- * `dcos::Vector{Bool}`
+ * `dcos::Vector{String}`
 
 # Output:
  * `F::LinearMap{Float64}` ... Linear map of the Fourier-transform implemented by the NFCT
 """
-function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, dcos::Vector{Bool})::Int64
+function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, dcos::Vector{String})::Int64
     if size(X, 1) == 1
         X = vec(X)
         d = 1
@@ -143,7 +143,7 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, dcos::Vector{
 
     b = copy(bandwidths)
     for (idx, s) in enumerate(dcos)
-        if s
+        if (BASES[s]>0)
             b[idx] *= 2
         end
     end
@@ -173,12 +173,16 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, dcos::Vector{
     return idx
 end
 
-function get_phi(x::Vector{Float64}, k::Vector{Int64}, dcos::Vector{Bool})::ComplexF64
+function get_phi(x::Vector{Float64}, k::Vector{Int64}, dcos::Vector{String})::ComplexF64
     p = 1
     for (idx, s) in enumerate(dcos)
-        if s
+        if (BASES[s]=1)
             if k[idx] ≠ 0
                 p *= sqrt(2.0)*cos(pi*k[idx]*x[idx])
+            end
+        elseif (BASES[s]=2)
+            if k[idx] ≠ 0
+                p *= sqrt(2.0)*cos(k[idx]*acos(2*x[idx]-1))
             end
         else
             p *= exp(-2.0*pi*im*k[idx]*x[idx])
@@ -193,12 +197,12 @@ end
 # Input:
  * `bandwidths::Vector{Int}`
  * `X::Array{Float64}` ... nodes in |u| x M format
- * `dcos::Vector{Bool}`
+ * `dcos::Vector{String}`
 
 # Output:
  * `F::Array{ComplexF64}` ... Matrix of the Fourier-transform
 """
-function get_matrix(bandwidths::Vector{Int}, X::Array{Float64}, dcos::Vector{Bool})::Array{ComplexF64}
+function get_matrix(bandwidths::Vector{Int}, X::Array{Float64}, dcos::Vector{String})::Array{ComplexF64}
     if size(X, 1) == 1
         X = vec(X)
         d = 1

@@ -1,7 +1,6 @@
 module GroupedTransforms
 
 using LinearMaps
-using Distributed
 using Combinatorics
 using Aqua
 using LinearAlgebra
@@ -27,15 +26,17 @@ export NFFTtools
 export CWWTtools
 export NFFCTtools
 
-systems = Dict("exp" => NFFTtools, "cos" => NFCTtools, "chui1" => CWWTtools, "chui2" => CWWTtools, "chui3" => CWWTtools, "chui4" => CWWTtools, "expcos" => NFFCTtools)
+systems = Dict("exp" => NFFTtools, "cos" => NFCTtools, "chui1" => CWWTtools, "chui2" => CWWTtools, "chui3" => CWWTtools, "chui4" => CWWTtools, "mixed" => NFFCTtools)
+
+BASES = Dict("exp"=>0,"cos"=>1,"alg"=>2)
 
 function get_setting(
     system::String,
     d::Int,
     ds::Int,
     N::Vector{Int},
-    dcos::Vector{Bool} = Vector{Bool}([]),
-)::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}}
+    dcos::Vector{String} = Vector{String}([]),
+)::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}
     if !haskey(systems, system)
         error("System not found.")
     end
@@ -66,8 +67,8 @@ function get_setting(
     system::String,
     U::Vector{Vector{Int}},
     N::Vector{Int},
-    dcos::Vector{Bool} = Vector{Bool}([]),
-)::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}}
+    dcos::Vector{String} = Vector{String}([]),
+)::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}
     if !haskey(systems, system)
         error("System not found.")
     end
@@ -105,8 +106,8 @@ function get_setting(
     system::String,
     U::Vector{Vector{Int}},
     N::Vector{Vector{Int}},
-    dcos::Vector{Bool} = Vector{Bool}([]),
-)::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}}
+    dcos::Vector{String} = Vector{String}([]),
+)::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}
     if !haskey(systems, system)
         error("System not found.")
     end
@@ -142,7 +143,7 @@ end
 
 function get_NumFreq(
     setting::Vector{
-        NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}
+        NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}
     },
 )::Int
     if setting[1].mode == CWWTtools
@@ -174,7 +175,7 @@ end
 
 function get_IndexSet(
     setting::Vector{
-        NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}
+        NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}
     },
     d::Int,
 )::Matrix{Int}
