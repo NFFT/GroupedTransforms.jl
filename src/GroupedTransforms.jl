@@ -29,8 +29,6 @@ export NFFCTtools
 
 systems = Dict("exp" => NFFTtools, "cos" => NFCTtools, "chui1" => CWWTtools, "chui2" => CWWTtools, "chui3" => CWWTtools, "chui4" => CWWTtools, "mixed" => NFFCTtools)
 
-BASES = Dict("exp"=>0,"cos"=>1,"alg"=>2)
-
 function get_setting(
     system::String,
     d::Int,

@@ -3,6 +3,8 @@ module NFFCTtools
 using LinearMaps
 using NFFT3
 
+BASES = Dict("exp"=>0,"cos"=>1,"alg"=>2)
+
 """
 `N = datalength(bandwidths)`
 
