@@ -64,8 +64,8 @@ struct GroupedTransform
                     error("Nodes must be between 0 and 1 for cosine or Chebyshev dimensions.")
                 end
             end
-            if sum(getindex.([BASES],dcos).==0)>0 
-                if (minimum(X[(getindex.([BASES],dcos).==0),:]) < -0.5) || (maximum(X[(getindex.([BASES],dcos).==0),:]) > 0.5)
+            if sum(.!(getindex.([BASES],dcos).>0))>0 
+                if (minimum(X[(.!(getindex.([BASES],dcos).>0)),:]) < -0.5) || (maximum(X[(.!(getindex.([BASES],dcos).>0)),:]) > 0.5)
                     error("Nodes must be between -0.5 and 0.5 for exponentional dimensions.")
             
                 end
