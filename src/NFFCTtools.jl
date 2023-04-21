@@ -29,14 +29,14 @@ end
 function nffct_index_set_without_zeros(bandwidths::Vector{Int}, dcos::Vector{String})::Array{Int}
     d = length(bandwidths)
     d == 0 && return [0]
-    d == 1 && dcos[1] && return collect([1:1; 2:bandwidths[1]-1])
-    d == 1 && !dcos[1] && return collect([-bandwidths[1]÷2:-1; 1:bandwidths[1]÷2-1])
+    d == 1 && BASES[dcos[1]]>0 && return collect([1:1; 2:bandwidths[1]-1])
+    d == 1 && BASES[dcos[1]]==0 && return collect([-bandwidths[1]÷2:-1; 1:bandwidths[1]÷2-1])
 
     bandwidths = reverse(bandwidths)
     dcos = reverse(dcos)
     tmp = Vector{Vector{Int64}}()
     for (idx, s) in enumerate(dcos)
-        if s
+        if BASES[s]>0
             append!(tmp, [[1:1; 2:bandwidths[idx]-1]])
         else
             append!(tmp, [[-bandwidths[idx]÷2:-1; 1:bandwidths[idx]÷2-1]])
@@ -64,14 +64,14 @@ end
 function nffct_index_set(bandwidths::Vector{Int}, dcos::Vector{String})::Array{Int}
     d = length(bandwidths)
     d == 0 && return [0]
-    d == 1 && dcos[1] && return collect([0:0; 1:bandwidths[1]-1])
-    d == 1 && !dcos[1] && return collect([-bandwidths[1]÷2:0; 1:bandwidths[1]÷2-1])
+    d == 1 && BASES[dcos[1]]>0 && return collect([0:0; 1:bandwidths[1]-1])
+    d == 1 && BASES[dcos[1]]==0 && return collect([-bandwidths[1]÷2:0; 1:bandwidths[1]÷2-1])
 
     bandwidths = reverse(bandwidths)
     dcos = reverse(dcos)
     tmp = Vector{Vector{Int64}}()
     for i = range(1,d)
-        if dcos[i]
+        if BASES[dcos[i]]>0
             append!(tmp, [[0:0; 1:bandwidths[i]-1]])
         else
             append!(tmp, [[-bandwidths[i]÷2:0; 1:bandwidths[i]÷2-1]])
@@ -176,11 +176,11 @@ end
 function get_phi(x::Vector{Float64}, k::Vector{Int64}, dcos::Vector{String})::ComplexF64
     p = 1
     for (idx, s) in enumerate(dcos)
-        if (BASES[s]=1)
+        if (BASES[s]==1)
             if k[idx] ≠ 0
                 p *= sqrt(2.0)*cos(pi*k[idx]*x[idx])
             end
-        elseif (BASES[s]=2)
+        elseif (BASES[s]==2)
             if k[idx] ≠ 0
                 p *= sqrt(2.0)*cos(k[idx]*acos(2*x[idx]-1))
             end
