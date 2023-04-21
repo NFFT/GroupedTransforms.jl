@@ -94,8 +94,9 @@ struct GroupedTransform
                 w = (w == nworkers()) ? 2 : (w + 1)
             end
         end
-
+        
         for (idx, s) in enumerate(setting)
+            println(fetch(f[idx][2]))
             transforms[idx] = (f[idx][1], fetch(f[idx][2]))
         end
 
