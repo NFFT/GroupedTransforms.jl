@@ -3,12 +3,12 @@ using LinearAlgebra
 d = 4
 ds = 3
 
-dcos = [true,false,true,false]
+dcos = ["exp", "alg", "cos", "alg"]
 
 M = 1_000
 
 X = rand(d, M)
-X[.!dcos,:] = X[.!dcos,:] .- 0.5
+X[1,:] = X[1,:] .- 0.5
 
 U = Vector{Vector{Int64}}(undef, 3)
 U[1] = []
@@ -17,7 +17,7 @@ U[3] = [1, 2]
 
 # set up transform ###################################################
 
-F = GroupedTransform("expcos", U, [0, 64, 16], X, dcos)
+F = GroupedTransform("mixed", U, [0, 64, 16], X, dcos)
 F_direct = get_matrix(F)
 
 # compute transform with NFFT ########################################

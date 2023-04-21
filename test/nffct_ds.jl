@@ -6,15 +6,15 @@ d = 4
 
 ds = 3
 
-dcos = [true,false,true,false]
+dcos = ["exp", "alg", "cos", "alg"]
 
 M = 1_000
 X = rand(d, M)
-X[.!dcos,:] = X[.!dcos,:] .- 0.5
+X[1,:] = X[1,:] .- 0.5
 
 # set up transform ###################################################
 
-F = GroupedTransform("expcos", d, ds, [2^6, 2^4, 4], X, dcos)
+F = GroupedTransform("mixed", d, ds, [2^6, 2^4, 4], X, dcos)
 F_direct = get_matrix(F)
 
 # compute transform with NFFT ########################################
