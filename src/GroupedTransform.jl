@@ -129,6 +129,18 @@ function GroupedTransform(
     return GroupedTransform(system, s, X, dcos)
 end
 
+function GroupedTransform(
+    system::String,
+    U::Vector{Vector{Int}},
+    N::Vector{Vector{Int}},
+    X::Array{Float64},
+    dcos::Vector{String} = Vector{String}([]),
+    #m::Int64 = 1,
+)
+    s = get_setting(system, U, N, dcos)
+    return GroupedTransform(system, s, X, dcos)
+end
+
 @doc raw"""
     *( F::GroupedTransform, fhat::GroupedCoefficients )::Vector{<:Number}
 
