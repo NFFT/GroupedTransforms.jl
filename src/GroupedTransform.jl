@@ -58,6 +58,7 @@ struct GroupedTransform
             if (minimum(X) < 0) || (maximum(X) > 0.5)
                 error("Nodes must be between 0 and 0.5.")
             end
+        #=
         elseif system == "mixed"
             if sum(getindex.([NFFCTtools.BASES],dcos).>0)>0 
                 if (minimum(X[getindex.([NFFCTtools.BASES],dcos).>0,:]) < 0) || (maximum(X[getindex.([NFFCTtools.BASES],dcos).>0,:]) > 1)
@@ -70,6 +71,7 @@ struct GroupedTransform
             
                 end
             end
+        =#
         end
 
         transforms = Vector{Tuple{Int64,Int64}}(undef, length(setting))
