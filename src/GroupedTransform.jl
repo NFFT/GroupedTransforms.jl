@@ -18,13 +18,13 @@ A struct to describe a GroupedTransformation
     GroupedTransform( system, d, ds, N::Vector{Int}, X, dcos::Vector{Bool} = Vector{Bool}([]) )
     GroupedTransform( system, U, N, X, dcos::Vector{Bool} = Vector{Bool}([]) )
 """
-struct GroupedTransform
+mutable struct GroupedTransform
     system::String
     setting::Vector{
         NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{Bool}}}
     }
     X::Array{Float64}
-    transforms::Vector{Int64}
+    transforms::Vector{Tuple{LinearMap,NFFT}} #Vector{Int64}
     dcos::Vector{Bool}
 
     function GroupedTransform(
@@ -72,10 +72,10 @@ struct GroupedTransform
             end
         end
 
-        transforms = Vector{Int64}(undef,length(setting))
+        transforms = Vector{Tuple{LinearMap,NFFT}}(undef,length(setting))
 
         for (idx, s) in enumerate(setting)
-            if system =="chui1"
+            #=if system =="chui1"
                 transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], 1)
             elseif system =="chui2"
                 transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], 2)
@@ -85,12 +85,13 @@ struct GroupedTransform
                 transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], 4)
             elseif system == "expcos"
                 transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], s[:bases])
-            else
-                transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :])
-            end
+            else =#
+                transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :]) # gibt in alter version int zurück
+            #end
         end
-
-        new(system, setting, X, transforms, dcos)
+        x = new(system, setting, X, transforms, dcos)
+        f(t) = println("Finalizing")
+        finalizer(f, x)
     end
 end
 
@@ -129,7 +130,8 @@ function Base.:*(F::GroupedTransform, fhat::GroupedCoefficients)::Vector{<:Numbe
         error("The GroupedTransform and the GroupedCoefficients have different settings")
     end
 
-    return sum(i -> (F.setting[i][:mode].trafos[F.transforms[i]]) * (fhat[F.setting[i][:u]]), 1:length(F.transforms))
+    return sum(i -> (F.transforms[i][1]) * (fhat[F.setting[i][:u]]), 1:length(F.transforms))
+    #return sum(i -> (F.setting[i][:mode].trafos[F.transforms[i]]) * (fhat[F.setting[i][:u]]), 1:length(F.transforms))
 end
 
 @doc raw"""
@@ -140,7 +142,8 @@ Overloads the * notation in order to achieve the adjoint transform `f = F*f`.
 function Base.:*(F::GroupedTransform, f::Vector{<:Number})::GroupedCoefficients
     fhat = GroupedCoefficients(F.setting)
     for i = 1:length(F.transforms)
-        fhat[F.setting[i][:u]] = (F.setting[i][:mode].trafos[F.transforms[i]])' * f
+        fhat[F.setting[i][:u]] = (F.transforms[i][1])' * f
+        #fhat[F.setting[i][:u]] = (F.setting[i][:mode].trafos[F.transforms[i]])' * f
     end
     return fhat
 end
@@ -164,9 +167,9 @@ function Base.:getindex(F::GroupedTransform, u::Vector{Int})#::LinearMap{<:Numbe
     if isnothing(idx)
         error("This term is not contained")
     else
-        if F.system == "cos"
+        #=if F.system == "cos"
             function trafo(fhat::Vector{Float64})::Vector{Float64}
-                return F.setting[idx][:mode].trafos[F.transforms[idx]](fhat)
+                #return F.setting[idx][:mode].trafos[F.transforms[idx]](fhat)
             end
 
             function adjoint(f::Vector{Float64})::Vector{Float64}
@@ -176,24 +179,26 @@ function Base.:getindex(F::GroupedTransform, u::Vector{Int})#::LinearMap{<:Numbe
             N = prod(F.setting[idx][:bandwidths] .- 1)
             M = size(F.X, 2)
             return LinearMap{Float64}(trafo, adjoint, M, N)
-        elseif (F.system == "exp" || F.system == "expcos")
+        elseif (F.system == "exp" || F.system == "expcos") =#
             function trafo(fhat::Vector{ComplexF64})::Vector{ComplexF64}
-                return F.setting[idx][:mode].trafos[F.transforms[idx]](fhat)
+                return F.transforms[idx][1](fhat)
+                #return F.setting[idx][:mode].trafos[F.transforms[idx]](fhat)
             end
 
             function adjoint(f::Vector{ComplexF64})::Vector{ComplexF64}
-                return F.setting[idx][:mode].trafos[F.transforms[idx]]'(f)
+                return F.transforms[idx][1]'(f)
+                #return F.setting[idx][:mode].trafos[F.transforms[idx]]'(f)
             end
 
             N = prod(F.setting[idx][:bandwidths] .- 1)
             M = size(F.X, 2)
             return LinearMap{ComplexF64}(trafo, adjoint, M, N)
 
-        elseif F.system == "chui1" || F.system == "chui2"  || F.system == "chui3"||F.system == "chui4"
+        #=elseif F.system == "chui1" || F.system == "chui2"  || F.system == "chui3"||F.system == "chui4"
             #S = SparseMatrixCSC{Float64, Int}
             S = (F.setting[idx][:mode].trafos[F.transforms[idx]])
             return SparseMatrixCSC{Float64, Int}(S)
-        end
+        end =#
     end
 end
 
@@ -203,6 +208,7 @@ end
 
 This function returns the actual matrix of the transformation. This is not available for the wavelet basis
 """
+
 function get_matrix(F::GroupedTransform)::Matrix{<:Number}
     if F.system == "expcos"
         s1 = F.setting[1]
@@ -220,4 +226,4 @@ function get_matrix(F::GroupedTransform)::Matrix{<:Number}
         end
     end
     return F_direct
-end
+end 

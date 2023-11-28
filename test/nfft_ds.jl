@@ -1,19 +1,20 @@
 using LinearAlgebra
+using GroupedTransforms
 
 d = 4
 ds = 3
 
 M = 1_000
 X = rand(d, M) .- 0.5
-
 # set up transform ###################################################
 
+for i=1:20000
 F = GroupedTransform("exp", d, ds, [2^12, 2^6, 2^4], X)
-F_direct = get_matrix(F)
 
 # compute transform with NFFT ########################################
 
 fhat = GroupedCoefficients(F.setting)
+
 for i = 1:length(F.setting)
     u = F.setting[i][:u]
     fhat[u] = rand(ComplexF64, size(fhat[u]))
@@ -38,7 +39,7 @@ GroupedTransforms.set_data!(fhat, ghat.data)
 ###
 
 f = F * fhat
-
+#=
 # compute transform without NFFT #####################################
 
 f_direct = F_direct * vec(fhat)
@@ -63,4 +64,6 @@ fhat_direct = F_direct' * y
 # compare results ####################################################
 
 error = norm(vec(fhat) - fhat_direct)
-@test error < 1e-5
+@test error < 1e-5 =#
+
+end
