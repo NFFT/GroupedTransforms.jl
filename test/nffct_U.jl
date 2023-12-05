@@ -3,7 +3,7 @@ using LinearAlgebra
 d = 4
 ds = 3
 
-dcos = ["exp", "alg", "cos", "alg"]
+basis_vect = ["exp", "alg", "cos", "alg"]
 
 M = 1_000
 
@@ -17,7 +17,7 @@ U[3] = [1, 2]
 
 # set up transform ###################################################
 
-F = GroupedTransform("mixed", U, [0, 64, 16], X, dcos)
+F = GroupedTransform("mixed", U, [0, 64, 16], X, basis_vect)
 F_direct = get_matrix(F)
 
 # compute transform with NFFT ########################################

@@ -6,7 +6,7 @@ d = 4
 
 ds = 3
 
-dcos = ["exp", "alg", "cos", "alg"]
+basis_vect = ["exp", "alg", "cos", "alg"]
 
 M = 1_000
 X = rand(d, M)
@@ -14,7 +14,7 @@ X[1,:] = X[1,:] .- 0.5
 
 # set up transform ###################################################
 
-F = GroupedTransform("mixed", d, ds, [2^6, 2^4, 4], X, dcos)
+F = GroupedTransform("mixed", d, ds, [2^6, 2^4, 4], X, basis_vect)
 F_direct = get_matrix(F)
 
 # compute transform with NFFT ########################################
