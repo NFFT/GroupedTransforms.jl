@@ -90,7 +90,7 @@ end
 trafos::Vector{LinearMap{ComplexF64}}
 This vector is local to the module on every worker.  It stores the transformations in order to access them later.
 """
-trafos = Vector{LinearMap{ComplexF64}}(undef, 1)
+#trafos = Vector{LinearMap{ComplexF64}}(undef, 1)
 
 """
 `F = get_transform(bandwidths, X)
@@ -102,7 +102,7 @@ trafos = Vector{LinearMap{ComplexF64}}(undef, 1)
 # Output:
  * `F::LinearMap{ComplexF64}` ... Linear map of the Fourier-transform implemented by the NFFT
 """
-function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::Int64
+function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::LinearMap
     if size(X, 1) == 1
         X = vec(X)
         d = 1
@@ -112,10 +112,10 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::Int64
     end
 
     if bandwidths == []
-        idx = length(trafos)
-        trafos[idx] = LinearMap{ComplexF64}(fhat -> fill(fhat[1], M), f -> [sum(f)], M, 1)
-        append!(trafos, Vector{LinearMap{ComplexF64}}(undef, 1))
-        return idx
+        #idx = length(trafos)
+        #trafos[idx] = LinearMap{ComplexF64}(fhat -> fill(fhat[1], M), f -> [sum(f)], M, 1)
+        #append!(trafos, Vector{LinearMap{ComplexF64}}(undef, 1))
+        return LinearMap{ComplexF64}(fhat -> fill(fhat[1], M), f -> [sum(f)], M, 1)
     end
 
     mask = nfft_mask(bandwidths)
@@ -137,10 +137,10 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::Int64
     end
 
     N = prod(bandwidths .- 1)
-    idx = length(trafos)
-    trafos[idx] = LinearMap{ComplexF64}(trafo, adjoint, M, N)
-    append!(trafos, Vector{LinearMap{ComplexF64}}(undef, 1))
-    return idx
+    #idx = length(trafos)
+    #trafos[idx] = LinearMap{ComplexF64}(trafo, adjoint, M, N)
+    #append!(trafos, Vector{LinearMap{ComplexF64}}(undef, 1))
+    return LinearMap{ComplexF64}(trafo, adjoint, M, N)
 end
 
 """

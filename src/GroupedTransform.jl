@@ -24,7 +24,7 @@ struct GroupedTransform
         NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}
     }
     X::Array{Float64}
-    transforms::Vector{Tuple{Int64,Int64}}
+    transforms::Vector{Tuple{Int64,LinearMap}}
     dcos::Vector{String}
 
     function GroupedTransform(
@@ -74,12 +74,12 @@ struct GroupedTransform
         =#
         end
 
-        transforms = Vector{Tuple{Int64,Int64}}(undef, length(setting))
+        transforms = Vector{Tuple{Int64,LinearMap}}(undef, length(setting))
         f = Vector{Tuple{Int64,Future}}(undef, length(setting))
         w = (nworkers() == 1) ? 1 : 2
 
         for (idx, s) in enumerate(setting)
-            if system =="chui1"
+            #=if system =="chui1"
                 f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], 1 ))
             elseif system =="chui2"
                 f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], 2))
@@ -89,9 +89,9 @@ struct GroupedTransform
                 f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], 4))
             elseif system == "mixed"
                 f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], s[:bases]))
-            else
+            else =#
                 f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :]))
-            end
+            #end
             if nworkers() != 1
                 w = (w == nworkers()) ? 2 : (w + 1)
             end
@@ -155,8 +155,7 @@ function Base.:*(F::GroupedTransform, fhat::GroupedCoefficients)::Vector{<:Numbe
     f = Vector{Future}(undef, length(F.transforms))
     for i = 1:length(F.transforms)
         f[i] =
-            @spawnat F.transforms[i][1] (F.setting[i][:mode].trafos[F.transforms[i][2]]) *
-                                        (fhat[F.setting[i][:u]])
+            @spawnat F.transforms[i][1] (F.transforms[i][2]) * (fhat[F.setting[i][:u]])
     end
 
     return sum(i -> fetch(f[i]), 1:length(F.transforms))
@@ -171,8 +170,7 @@ function Base.:*(F::GroupedTransform, f::Vector{<:Number})::GroupedCoefficients
     fh = Vector{Future}(undef, length(F.transforms))
     for i = 1:length(F.transforms)
         fh[i] =
-            @spawnat F.transforms[i][1] (F.setting[i][:mode].trafos[F.transforms[i][2]])' *
-                                        f
+            @spawnat F.transforms[i][1] (F.transforms[i][2])' * f
     end
     fhat = GroupedCoefficients(F.setting)
     for i = 1:length(F.transforms)
@@ -200,7 +198,7 @@ function Base.:getindex(F::GroupedTransform, u::Vector{Int})#::LinearMap{<:Numbe
     if isnothing(idx)
         error("This term is not contained")
     else
-        if F.system == "cos"
+        #= if F.system == "cos"
             function trafo(fhat::Vector{Float64})::Vector{Float64}
                 return remotecall_fetch(
                     F.setting[idx][:mode].trafos[F.transforms[idx][2]],
@@ -219,33 +217,25 @@ function Base.:getindex(F::GroupedTransform, u::Vector{Int})#::LinearMap{<:Numbe
 
             N = prod(F.setting[idx][:bandwidths] .- 1)
             M = size(F.X, 2)
-            return LinearMap{Float64}(trafo, adjoint, M, N)
-        elseif (F.system == "exp" || F.system == "mixed")
+            return LinearMap{Float64}(trafo, adjoint, M, N) =#
+        #if (F.system == "exp" || F.system == "mixed")
             function trafo(fhat::Vector{ComplexF64})::Vector{ComplexF64}
-                return remotecall_fetch(
-                    F.setting[idx][:mode].trafos[F.transforms[idx][2]],
-                    F.transforms[idx][1],
-                    fhat,
-                )
+                return F.transforms[idx][2] * fhat
             end
 
             function adjoint(f::Vector{ComplexF64})::Vector{ComplexF64}
-                return remotecall_fetch(
-                    F.setting[idx][:mode].trafos[F.transforms[idx][2]]',
-                    F.transforms[idx][1],
-                    f,
-                )
+                return F.transforms[idx][2]' * f
             end
 
             N = prod(F.setting[idx][:bandwidths] .- 1)
             M = size(F.X, 2)
             return LinearMap{ComplexF64}(trafo, adjoint, M, N)
 
-        elseif F.system == "chui1" || F.system == "chui2"  || F.system == "chui3"||F.system == "chui4"
+        #=elseif F.system == "chui1" || F.system == "chui2"  || F.system == "chui3"||F.system == "chui4"
             #S = SparseMatrixCSC{Float64, Int}
             S = @spawnat F.transforms[idx][1] (F.setting[idx][:mode].trafos[F.transforms[idx][2]])
             return SparseMatrixCSC{Float64, Int}(fetch(S))
-        end
+        end =#
     end
 end
 
