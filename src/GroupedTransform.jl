@@ -90,16 +90,17 @@ struct GroupedTransform
             elseif system == "mixed"
                 f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], s[:bases]))
             else =#
-                f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :]))
+                #f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :]))
+                transforms[idx] = (1,s[:mode].get_transform( s[:bandwidths], X[s[:u], :]))
             #end
-            if nworkers() != 1
+            #=if nworkers() != 1
                 w = (w == nworkers()) ? 2 : (w + 1)
-            end
+            end =#
         end
         
-        for (idx, s) in enumerate(setting)
+        #= for (idx, s) in enumerate(setting)
             transforms[idx] = (f[idx][1], fetch(f[idx][2]))
-        end
+        end =#
 
 
         new(system, setting, X, transforms, dcos)
@@ -152,10 +153,9 @@ function Base.:*(F::GroupedTransform, fhat::GroupedCoefficients)::Vector{<:Numbe
     if F.setting != fhat.setting
         error("The GroupedTransform and the GroupedCoefficients have different settings")
     end
-    f = Vector{Future}(undef, length(F.transforms))
+    f = Vector{Task}(undef, length(F.transforms))
     for i = 1:length(F.transforms)
-        f[i] =
-            @spawnat F.transforms[i][1] (F.transforms[i][2]) * (fhat[F.setting[i][:u]])
+        f[i] = Threads.@spawn (F.transforms[i][2]) * (fhat[F.setting[i][:u]])
     end
 
     return sum(i -> fetch(f[i]), 1:length(F.transforms))
@@ -167,10 +167,9 @@ end
 Overloads the * notation in order to achieve the adjoint transform `f = F*f`.
 """
 function Base.:*(F::GroupedTransform, f::Vector{<:Number})::GroupedCoefficients
-    fh = Vector{Future}(undef, length(F.transforms))
+    fh = Vector{Task}(undef, length(F.transforms))
     for i = 1:length(F.transforms)
-        fh[i] =
-            @spawnat F.transforms[i][1] (F.transforms[i][2])' * f
+        fh[i] = Threads.@spawn (F.transforms[i][2])' * f
     end
     fhat = GroupedCoefficients(F.setting)
     for i = 1:length(F.transforms)

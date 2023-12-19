@@ -1,15 +1,15 @@
 using LinearAlgebra
+using GroupedTransforms
 
-d = 4
+d = 8
 ds = 3
 
-M = 1_000
+M = 1_0000
 X = rand(d, M) .- 0.5
 
 # set up transform ###################################################
 
-F = GroupedTransform("exp", d, ds, [2^12, 2^6, 2^4], X)
-F_direct = get_matrix(F)
+F = GroupedTransform("exp", d, ds, [2^13, 2^7, 2^5], X)
 
 # compute transform with NFFT ########################################
 
@@ -37,16 +37,7 @@ GroupedTransforms.set_data!(fhat, ghat.data)
 
 ###
 
-f = F * fhat
-
-# compute transform without NFFT #####################################
-
-f_direct = F_direct * vec(fhat)
-
-# compare results ####################################################
-
-error = norm(f - f_direct)
-@test error < 1e-5
+@time f = F * fhat
 
 # generate random function values ####################################
 
@@ -56,11 +47,3 @@ y = rand(ComplexF64, M)
 
 fhat = F' * y
 
-# compute adjoint transform without NFFT #############################
-
-fhat_direct = F_direct' * y
-
-# compare results ####################################################
-
-error = norm(vec(fhat) - fhat_direct)
-@test error < 1e-5

@@ -124,6 +124,7 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::LinearMap
     plan.x = X
 
     function trafo(fhat::Vector{ComplexF64})::Vector{ComplexF64}
+        #println(Threads.threadid())
         plan.fhat = zeros(ComplexF64, length(mask))
         plan.fhat[mask] = fhat
         nfft_trafo(plan)
