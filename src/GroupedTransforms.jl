@@ -8,6 +8,8 @@ using LinearAlgebra
 using Test
 using ToeplitzMatrices
 using Base.Threads
+using Folds
+using ThreadsX
 
 @doc raw"""
     get_superposition_set( d::Int, ds::Int )::Vector{Vector{Int}}

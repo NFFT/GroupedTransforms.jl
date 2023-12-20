@@ -155,9 +155,11 @@ function Base.:*(F::GroupedTransform, fhat::GroupedCoefficients)::Vector{<:Numbe
     end
     f = Vector{Task}(undef, length(F.transforms))
     for i = 1:length(F.transforms)
-        f[i] = Threads.@spawn (F.transforms[i][2]) * (fhat[F.setting[i][:u]])
-    end
-
+        f[i] = Threads.@spawn (F.transforms[i][2]) * (fhat[F.setting[i][:u]]) 
+    end  
+    #println(length(F.transforms))
+    #return Folds.mapreduce(i -> (F.transforms[i][2]) * (fhat[F.setting[i][:u]]), +, 1:length(F.transforms))
+    #return ThreadsX.sum((F.transforms[i][2]) * (fhat[F.setting[i][:u]]) for i=1:length(F.transforms))
     return sum(i -> fetch(f[i]), 1:length(F.transforms))
 end
 
