@@ -138,7 +138,6 @@ function GroupedTransform(
     N::Vector{Vector{Int}},
     X::Array{Float64},
     dcos::Vector{String} = Vector{String}([]),
-    #m::Int64 = 1,
 )
     s = get_setting(system, U, N, dcos)
     return GroupedTransform(system, s, X, dcos)
@@ -169,15 +168,19 @@ end
 Overloads the * notation in order to achieve the adjoint transform `f = F*f`.
 """
 function Base.:*(F::GroupedTransform, f::Vector{<:Number})::GroupedCoefficients
-    fh = Vector{Task}(undef, length(F.transforms))
+    fhat = GroupedCoefficients(F.setting)
+    Threads.@threads for i = 1:length(F.transforms)
+        fhat[F.setting[i][:u]] = (F.transforms[i][2])' * f
+    end
+    #=fh = Vector{Task}(undef, length(F.transforms))
     for i = 1:length(F.transforms)
         fh[i] = Threads.@spawn (F.transforms[i][2])' * f
     end
     fhat = GroupedCoefficients(F.setting)
     for i = 1:length(F.transforms)
         fhat[F.setting[i][:u]] = fetch(fh[i])
-    end
-    return fhat
+    end =#
+    return fhat 
 end
 
 @doc raw"""
