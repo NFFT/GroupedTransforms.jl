@@ -86,11 +86,6 @@ function nfft_mask(bandwidths::Vector{Int})::BitArray{1}
     end
 end
 
-"""
-trafos::Vector{LinearMap{ComplexF64}}
-This vector is local to the module on every worker.  It stores the transformations in order to access them later.
-"""
-#trafos = Vector{LinearMap{ComplexF64}}(undef, 1)
 
 """
 `F = get_transform(bandwidths, X)
@@ -112,9 +107,6 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::LinearMap
     end
 
     if bandwidths == []
-        #idx = length(trafos)
-        #trafos[idx] = LinearMap{ComplexF64}(fhat -> fill(fhat[1], M), f -> [sum(f)], M, 1)
-        #append!(trafos, Vector{LinearMap{ComplexF64}}(undef, 1))
         return LinearMap{ComplexF64}(fhat -> fill(fhat[1], M), f -> [sum(f)], M, 1)
     end
 
@@ -132,15 +124,13 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::LinearMap
     end
 
     function adjoint(f::Vector{ComplexF64})::Vector{ComplexF64}
+        #println(Threads.threadid())
         plan.f = f
         nfft_adjoint(plan)
         return plan.fhat[mask]
     end
 
     N = prod(bandwidths .- 1)
-    #idx = length(trafos)
-    #trafos[idx] = LinearMap{ComplexF64}(trafo, adjoint, M, N)
-    #append!(trafos, Vector{LinearMap{ComplexF64}}(undef, 1))
     return LinearMap{ComplexF64}(trafo, adjoint, M, N)
 end
 

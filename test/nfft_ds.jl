@@ -1,5 +1,6 @@
 using LinearAlgebra
 using GroupedTransforms
+using BenchmarkTools
 
 d = 8
 ds = 3
@@ -32,12 +33,12 @@ fhat[1] = 1.0 + 1.0 * im
 2 * fhat
 fhat + ghat
 fhat - ghat
-#F[[1, 2]]
+F[[1, 2]]
 GroupedTransforms.set_data!(fhat, ghat.data)
 
 ###
 
-@time f = F * fhat
+@btime f = F * fhat
 
 # generate random function values ####################################
 
@@ -45,5 +46,7 @@ y = rand(ComplexF64, M)
 
 # compute adjoint transform with NFFT ################################
 
-fhat = F' * y
+@btime fhat = F' * y
+
+F[[1, 2]]
 

@@ -1,6 +1,8 @@
 using LinearAlgebra
+using GroupedTransforms
+using BenchmarkTools
 
-d = 4
+d = 8
 ds = 3
 
 M = 1_000
@@ -32,13 +34,15 @@ fhat[1] = 1.0
 2 * fhat
 fhat + ghat
 fhat - ghat
-F[[1, 2]]
+#F[[1, 2]]
 GroupedTransforms.set_data!(fhat, ghat.data)
 
 ###
 
-f = F * fhat
+@btime f = F * fhat
 
 y = rand(Float64, M)
 
-fhat = F' * y
+@btime fhat = F' * y
+
+A = F[[1, 2]]

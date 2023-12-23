@@ -86,11 +86,6 @@ function nfct_mask(bandwidths::Vector{Int})::BitArray{1}
     end
 end
 
-"""
-trafos::Vector{LinearMap{Float64}}
-This vector is local to the module on every worker.  It stores the transformations in order to access them later.
-"""
-trafos = Vector{LinearMap{Float64}}(undef, 1)
 
 """
 `F = get_transform(bandwidths, X)
@@ -102,7 +97,7 @@ trafos = Vector{LinearMap{Float64}}(undef, 1)
 # Output:
  * `F::LinearMap{Float64}` ... Linear map of the Fourier-transform implemented by the NFCT
 """
-function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::Int64
+function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::LinearMap
     if size(X, 1) == 1
         X = vec(X)
         d = 1
@@ -112,10 +107,7 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::Int64
     end
 
     if bandwidths == []
-        idx = length(trafos)
-        trafos[idx] = LinearMap{Float64}(fhat -> fill(fhat[1], M), f -> [sum(f)], M, 1)
-        append!(trafos, Vector{LinearMap{Float64}}(undef, 1))
-        return idx
+        return LinearMap{Float64}(fhat -> fill(fhat[1], M), f -> [sum(f)], M, 1)
     end
 
     mask = nfct_mask(bandwidths)
@@ -139,10 +131,7 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::Int64
     end
 
     N = prod(bandwidths .- 1)
-    idx = length(trafos)
-    trafos[idx] = LinearMap{Float64}(trafo, adjoint, M, N)
-    append!(trafos, Vector{LinearMap{Float64}}(undef, 1))
-    return idx
+    return LinearMap{Float64}(trafo, adjoint, M, N)
 end
 
 function get_multiplier(n::Vector{Int})::Float64
