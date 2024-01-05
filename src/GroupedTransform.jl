@@ -58,7 +58,7 @@ struct GroupedTransform
             if (minimum(X) < 0) || (maximum(X) > 0.5)
                 error("Nodes must be between 0 and 0.5.")
             end
-        #=
+        
         elseif system == "mixed"
             if sum(getindex.([NFFCTtools.BASES],dcos).>0)>0 
                 if (minimum(X[getindex.([NFFCTtools.BASES],dcos).>0,:]) < 0) || (maximum(X[getindex.([NFFCTtools.BASES],dcos).>0,:]) > 1)
@@ -68,10 +68,8 @@ struct GroupedTransform
             if sum(.!(getindex.([NFFCTtools.BASES],dcos).>0))>0 
                 if (minimum(X[(.!(getindex.([NFFCTtools.BASES],dcos).>0)),:]) < -0.5) || (maximum(X[(.!(getindex.([NFFCTtools.BASES],dcos).>0)),:]) > 0.5)
                     error("Nodes must be between -0.5 and 0.5 for exponentional dimensions.")
-            
                 end
             end
-        =#
         end
 
         transforms = Vector{LinearMap{<:Number}}(undef, length(setting))
@@ -85,8 +83,8 @@ struct GroupedTransform
                 transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], 3)
             elseif system =="chui4"
                 transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], 4)
-            #elseif system == "mixed"
-            #    f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], s[:bases]))
+            elseif system == "mixed"
+                transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], s[:bases])
             else
                 transforms[idx] = s[:mode].get_transform( s[:bandwidths], X[s[:u], :])
             end
