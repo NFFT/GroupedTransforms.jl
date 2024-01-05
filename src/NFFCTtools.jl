@@ -142,20 +142,20 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, dcos::Vector{
     end
 
     N2 = Tuple(b)
-    plan = NFFCT(Tuple(dcos), N2, M, Tuple(2 * collect(N2)), 5)
+    plan = NFMT(Tuple(dcos), N2, M, Tuple(2 * collect(N2)), 5)
     plan.x = X
 
     function trafo(fhat::Vector{ComplexF64})::Vector{ComplexF64}
         fh = zeros(ComplexF64, length(mask))
         fh[mask] = fhat
         plan.fhat = fh
-        nffct_trafo(plan)
+        nfmt_trafo(plan)
         return plan.f
     end
 
     function adjoint(f::Vector{ComplexF64})::Vector{ComplexF64}
         plan.f = f
-        nffct_adjoint(plan)
+        nfmt_adjoint(plan)
         return plan.fhat[mask]
     end
 
