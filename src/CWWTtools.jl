@@ -38,14 +38,6 @@ function datalength(bandwidths::Vector{Int})::Int
     end
 end
 
-
-
-"""
-trafos:Vector{SparseMatrixCSC}
-This vector is local to the module on every worker.  It stores the transformations in order to access them later.
-"""
-trafos = Vector{SparseMatrixCSC{Float64,Int}}(undef, 1)
-
 """
 `F = get_transform(bandwidths, X, order)
 
@@ -56,9 +48,9 @@ trafos = Vector{SparseMatrixCSC{Float64,Int}}(undef, 1)
 # Output:
  * `F::LinearMap{ComplexF64}` ... Linear maps of the sparse Matrices
 """
-function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, m::Int)::Int64
-    #m = 2
-
+function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, m::Int)::LinearMap
+    
+    # fix ------------------------------------------------------
     if size(X, 1) == 1
         X = vec(X)
         d = 1
@@ -76,13 +68,11 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, m::Int)::Int6
     """
 
     if bandwidths == []       #0-dimensional terms
-        idx = length(trafos)
         I = collect(1:M)
         J = ones(M)
         V = ones(M)
-        trafos[idx] = sparse(I, J, V)
-        append!(trafos, Vector{SparseMatrixCSC{Float64,Int64}}(undef, 1))
-        return idx
+        return LinearMap(sparse(I, J, V))
+    
     elseif d == 1    #1-dimensional terms
         I = collect(1:M)
         J = Int.(ones(M))
@@ -101,11 +91,7 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, m::Int)::Int6
             J = vcat(J, vec(reshape(transpose(k .+ 2^j), :, 1)))
             V = vcat(V, vec(reshape(transpose(Chui_periodic(X, m, j, k)), :, 1)))
         end
-
-        idx = length(trafos)
-        trafos[idx] = sparse(I, J, V, M, 2^(bandwidths[1] + 1) - 1)
-        append!(trafos, Vector{SparseMatrixCSC{Float64,Int64}}(undef, 1))
-        return idx
+        return LinearMap(sparse(I, J, V))
 
     elseif d == 2
         # j = [0,0]:
@@ -145,10 +131,7 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, m::Int)::Int6
             V = vcat(V, vec(reshape(transpose(Chui_periodic(X, m, [j[1], j[2]], k)), :, 1)))
             ac_co = ac_co + prod(2 .^ j)
         end
-        idx = length(trafos)
-        trafos[idx] = sparse(I, J, V, M, ac_co - 1)
-        append!(trafos, Vector{SparseMatrixCSC{Float64,Int64}}(undef, 1))
-        return idx
+        return LinearMap(sparse(I, J, V))
 
     elseif d == 3 #3-dimensional terms
         I = collect(1:M)
@@ -216,10 +199,7 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, m::Int)::Int6
             )
             ac_co = ac_co + 2^sum(j)
         end
-        idx = length(trafos)
-        trafos[idx] = sparse(I, J, V, M, ac_co - 1)
-        append!(trafos, Vector{SparseMatrixCSC{Float64,Int64}}(undef, 1))
-        return idx
+        return LinearMap(sparse(I, J, V))
 
     elseif d == 4 #4-dimensional terms
         I = collect(1:M)
@@ -308,10 +288,7 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, m::Int)::Int6
             )
             ac_co = ac_co + 2^sum(j)
         end
-        idx = length(trafos)
-        trafos[idx] = sparse(I, J, V, M, ac_co - 1)
-        append!(trafos, Vector{SparseMatrixCSC{Float64,Int64}}(undef, 1))
-        return idx
+        return LinearMap(sparse(I, J, V))
 
     elseif d == 5 #5-dimensional terms
         I = collect(1:M)
@@ -415,10 +392,7 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, m::Int)::Int6
             )
             ac_co = ac_co + 2^sum(j)
         end
-        idx = length(trafos)
-        trafos[idx] = sparse(I, J, V, M, ac_co - 1)
-        append!(trafos, Vector{SparseMatrixCSC{Float64,Int64}}(undef, 1))
-        return idx
+        return LinearMap(sparse(I, J, V))
 
 
     end  #if d == ...
