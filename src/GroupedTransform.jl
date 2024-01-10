@@ -89,12 +89,6 @@ struct GroupedTransform
                 transforms[idx] = s[:mode].get_transform( s[:bandwidths], X[s[:u], :])
             end
         end
-        
-        for (idx, s) in enumerate(setting)
-            transforms[idx] = (f[idx][1], fetch(f[idx][2]))
-        end
-
-
         new(system, setting, X, transforms, basis_vect)
     end
 end
