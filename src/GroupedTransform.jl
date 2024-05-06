@@ -200,7 +200,7 @@ function Base.:*(F::GroupedTransform, f::Vector{<:Number})::GroupedCoefficients
         end 
         return fhat 
     else
-        return F.matrix'*f
+        return GroupedCoefficients(F.setting, F.matrix'*f)
     end
 end
 
