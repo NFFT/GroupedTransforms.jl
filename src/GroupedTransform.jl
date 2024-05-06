@@ -23,7 +23,7 @@ struct GroupedTransform
         NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}
     }
     X::Array{Float64}
-    transforms::Vector{Tuple{Int64,Int64}}
+    transforms::Vector{LinearMap{<:Number}}
     matrix::Matrix{<:Number}
     fastmult::Bool
     dcos::Vector{String}
