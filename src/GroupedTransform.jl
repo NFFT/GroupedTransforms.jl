@@ -96,7 +96,7 @@ struct GroupedTransform
             end
         else
             transforms = Vector{Tuple{Int64,Int64}}()
-            s1 = F.setting[1]
+            s1 = setting[1]
             matrix = s1[:mode].get_matrix(s1[:bandwidths], F.X[s1[:u], :])
             for (idx, s) in enumerate(F.setting)
                 idx == 1 && continue
