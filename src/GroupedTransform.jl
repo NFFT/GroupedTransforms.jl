@@ -8,8 +8,7 @@ A struct to describe a GroupedTransformation
 * `system::String` - choice of `"exp"` or `"cos"` or `"chui1"` or `"chui2"` or `"chui3"` or `"chui4"` or `"mixed"`
 * `setting::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}` - vector of the dimensions, mode, bandwidths and bases for each term/group, see also [`get_setting(system::String,d::Int,ds::Int,N::Vector{Int},dcos::Vector{String})::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}`](@ref) and [`get_setting(system::String,U::Vector{Vector{Int}},N::Vector{Int},dcos::Vector{String})::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}`](@ref)
 * `X::Array{Float64}` - array of nodes
-* `transforms::Vector{LinearMap}` - holds the low-dimensional sub transformations
-* `dcos::Vector{String}` - holds for every dimension if a cosinus basis [true] or exponential basis [false] is used
+* `transforms::Vector{Tuple{Int64,Int64}}` - holds the low-dimensional sub transformations* `dcos::Vector{String}` - holds for every dimension if a cosinus basis [true] or exponential basis [false] is used
 
 # Constructor
     GroupedTransform( system, setting, X, dcos::Vector{String} = Vector{String}([]) )
