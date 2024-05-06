@@ -93,7 +93,6 @@ struct GroupedTransform
                     transforms[idx] = s[:mode].get_transform( s[:bandwidths], X[s[:u], :])
                 end
             end
-            end
         else
             transforms = Vector{Tuple{Int64,Int64}}()
             s1 = F.setting[1]
