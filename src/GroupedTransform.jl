@@ -96,11 +96,23 @@ struct GroupedTransform
             end
         else
             transforms = Vector{Tuple{Int64,Int64}}()
-            s1 = setting[1]
-            matrix = s1[:mode].get_matrix(s1[:bandwidths], X[s1[:u], :])
-            for (idx, s) in enumerate(setting)
-                idx == 1 && continue
-                matrix = hcat(F_direct, s[:mode].get_matrix(s[:bandwidths], X[s[:u], :]))
+            if F.system == "chui1" || F.system == "chui2"  || F.system == "chui3"||F.system == "chui4"
+
+                error("Direct computation with full matrix not supported for wavelet basis.")
+            elseif F.system == "mixed"
+                s1 = setting[1]
+                F_direct = s1[:mode].get_matrix(s1[:bandwidths], X[s1[:u], :], s1[:bases])
+                for (idx, s) in enumerate(setting)
+                    idx == 1 && continue
+                    F_direct = hcat(F_direct, s[:mode].get_matrix(s[:bandwidths], X[s[:u], :], s[:bases]))
+                end
+            else
+                s1 = setting[1]
+                F_direct = s1[:mode].get_matrix(s1[:bandwidths], X[s1[:u], :])
+                for (idx, s) in enumerate(setting)
+                    idx == 1 && continue
+                    F_direct = hcat(F_direct, s[:mode].get_matrix(s[:bandwidths], X[s[:u], :]))
+                end
             end
         end
         new(system, setting, X, transforms, matrix, fastmult, dcos)
