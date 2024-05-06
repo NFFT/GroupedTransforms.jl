@@ -101,17 +101,17 @@ struct GroupedTransform
                 error("Direct computation with full matrix not supported for wavelet basis.")
             elseif system == "mixed"
                 s1 = setting[1]
-                F_direct = s1[:mode].get_matrix(s1[:bandwidths], X[s1[:u], :], s1[:bases])
+                matrix = s1[:mode].get_matrix(s1[:bandwidths], X[s1[:u], :], s1[:bases])
                 for (idx, s) in enumerate(setting)
                     idx == 1 && continue
-                    F_direct = hcat(F_direct, s[:mode].get_matrix(s[:bandwidths], X[s[:u], :], s[:bases]))
+                    matrix = hcat(matrix, s[:mode].get_matrix(s[:bandwidths], X[s[:u], :], s[:bases]))
                 end
             else
                 s1 = setting[1]
-                F_direct = s1[:mode].get_matrix(s1[:bandwidths], X[s1[:u], :])
+                matrix = s1[:mode].get_matrix(s1[:bandwidths], X[s1[:u], :])
                 for (idx, s) in enumerate(setting)
                     idx == 1 && continue
-                    F_direct = hcat(F_direct, s[:mode].get_matrix(s[:bandwidths], X[s[:u], :]))
+                    matrix = hcat(matrix, s[:mode].get_matrix(s[:bandwidths], X[s[:u], :]))
                 end
             end
         end
