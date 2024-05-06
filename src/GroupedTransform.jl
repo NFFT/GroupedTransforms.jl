@@ -76,6 +76,7 @@ struct GroupedTransform
             fastmult = true
         end
         if fastmult
+            matrix = Matrix(undef,1,1)
             transforms = Vector{LinearMap{<:Number}}(undef, length(setting))
 
             for (idx, s) in enumerate(setting)
