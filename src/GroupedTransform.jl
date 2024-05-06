@@ -96,7 +96,7 @@ struct GroupedTransform
             end
         else
             transforms = Vector{Tuple{Int64,Int64}}()
-            if F.system == "chui1" || F.system == "chui2"  || F.system == "chui3"||F.system == "chui4"
+            if system == "chui1" || system == "chui2"  || system == "chui3"||system == "chui4"
 
                 error("Direct computation with full matrix not supported for wavelet basis.")
             elseif F.system == "mixed"
