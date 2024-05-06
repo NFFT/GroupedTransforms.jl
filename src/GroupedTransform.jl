@@ -99,7 +99,7 @@ struct GroupedTransform
             if system == "chui1" || system == "chui2"  || system == "chui3"||system == "chui4"
 
                 error("Direct computation with full matrix not supported for wavelet basis.")
-            elseif F.system == "mixed"
+            elseif system == "mixed"
                 s1 = setting[1]
                 F_direct = s1[:mode].get_matrix(s1[:bandwidths], X[s1[:u], :], s1[:bases])
                 for (idx, s) in enumerate(setting)
