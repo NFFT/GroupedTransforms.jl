@@ -97,10 +97,10 @@ struct GroupedTransform
         else
             transforms = Vector{Tuple{Int64,Int64}}()
             s1 = setting[1]
-            matrix = s1[:mode].get_matrix(s1[:bandwidths], F.X[s1[:u], :])
-            for (idx, s) in enumerate(F.setting)
+            matrix = s1[:mode].get_matrix(s1[:bandwidths], X[s1[:u], :])
+            for (idx, s) in enumerate(setting)
                 idx == 1 && continue
-                matrix = hcat(F_direct, s[:mode].get_matrix(s[:bandwidths], F.X[s[:u], :]))
+                matrix = hcat(F_direct, s[:mode].get_matrix(s[:bandwidths], X[s[:u], :]))
             end
         end
         new(system, setting, X, transforms, matrix, fastmult, dcos)
