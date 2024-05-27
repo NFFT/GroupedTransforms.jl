@@ -1,6 +1,6 @@
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.10.2"
+julia_version = "1.10.3"
 manifest_format = "2.0"
 project_hash = "39e24f3f7ff469c1d6feeb4df054c708bb05107c"
 
@@ -117,7 +117,7 @@ weakdeps = ["Dates", "LinearAlgebra"]
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
-version = "1.1.0+0"
+version = "1.1.1+0"
 
 [[deps.CompositionsBase]]
 git-tree-sha1 = "802bb88cd69dfd1509f6670416bd4434015693ad"
@@ -141,6 +141,12 @@ version = "1.5.5"
     [deps.ConstructionBase.weakdeps]
     IntervalSets = "8197267c-284f-5f27-9208-e0e47529a953"
     StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+
+[[deps.CpuId]]
+deps = ["Markdown"]
+git-tree-sha1 = "fcbb72b032692610bfbdb15018ac16a36cf2e406"
+uuid = "adafc99b-e345-5852-983c-f28acb93d879"
+version = "0.3.1"
 
 [[deps.DSP]]
 deps = ["Compat", "FFTW", "IterTools", "LinearAlgebra", "Polynomials", "Random", "Reexport", "SpecialFunctions", "Statistics"]
@@ -378,9 +384,12 @@ uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
 version = "2023.1.10"
 
 [[deps.NFFT3]]
-git-tree-sha1 = "b5d764c79f3453bf03ac364a8d8d29e3a305c17d"
+deps = ["Aqua", "CpuId", "LinearAlgebra", "Test"]
+git-tree-sha1 = "f55d45d0ee67f0a3e60394df7a77b45ebf22d56f"
+repo-rev = "NFFCT"
+repo-url = "https://github.com/NFFT/NFFT3.jl.git"
 uuid = "53104703-03e8-40a5-ab01-812303a44cae"
-version = "1.1.0"
+version = "1.2.0"
 
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
