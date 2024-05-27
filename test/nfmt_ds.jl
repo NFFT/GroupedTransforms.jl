@@ -14,7 +14,8 @@ X[1,:] = X[1,:] .- 0.5
 
 # set up transform ###################################################
 
-F = GroupedTransform("mixed", d, ds, [2^6, 2^4, 4], X, dcos)
+F = GroupedTransform("mixed", d, ds, [2^6, 2^4, 4], X; dcos=dcos)
+F_direct = get_matrix(F)
 
 # compute transform with NFFT ########################################
 
@@ -43,6 +44,10 @@ GroupedTransforms.set_data!(fhat, ghat.data)
 ###
 
 f = F * fhat
+
+# compute transform without NFFT #####################################
+
+f_direct = F_direct * vec(fhat)
 
 # compare results ####################################################
 
