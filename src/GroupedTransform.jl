@@ -34,7 +34,7 @@ struct GroupedTransform
             NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}
         },
         X::Array{Float64};
-        fastmult = true,
+        fastmult::Bool = true,
         dcos::Vector{String} = Vector{String}([]),
     )
         
@@ -125,11 +125,11 @@ function GroupedTransform(
     ds::Int,
     N::Vector{Int},
     X::Array{Float64};
-    fastmult = true,
+    fastmult::Bool = true,
     dcos::Vector{String} = Vector{String}([])
 )
     s = get_setting(system, d, ds, N, dcos)
-    return GroupedTransform(system, s, X; fastmult, dcos)
+    return GroupedTransform(system, s, X; fastmult = fastmult, dcos = dcos)
 end
 
 function GroupedTransform(
@@ -137,11 +137,11 @@ function GroupedTransform(
     U::Vector{Vector{Int}},
     N::Vector{Int},
     X::Array{Float64};
-    fastmult = true,
+    fastmult::Bool = true,
     dcos::Vector{String} = Vector{String}([])
 )
     s = get_setting(system, U, N, dcos)
-    return GroupedTransform(system, s, X; fastmult, dcos)
+    return GroupedTransform(system, s, X; fastmult = fastmult, dcos = dcos)
 end
 
 function GroupedTransform(
@@ -149,11 +149,11 @@ function GroupedTransform(
     U::Vector{Vector{Int}},
     N::Vector{Vector{Int}},
     X::Array{Float64};
-    fastmult = true,
+    fastmult::Bool = true,
     dcos::Vector{String} = Vector{String}([]),
 )
     s = get_setting(system, U, N, dcos)
-    return GroupedTransform(system, s, X; fastmult, dcos)
+    return GroupedTransform(system, s, X; fastmult = fastmult, dcos = dcos)
 end
 
 @doc raw"""
