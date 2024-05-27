@@ -10,7 +10,7 @@ A struct to hold complex coefficients belonging to indices in a grouped index se
 ```
 
 # Fields
-* `setting::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}` - uniquely describes the setting such as the bandlimits ``N_{\pmb u}``, see also [`get_setting(system::String,d::Int,ds::Int,N::Vector{Int},dcos::Vector{String})::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}`](@ref) and [`get_setting(system::String,U::Vector{Vector{Int}},N::Vector{Int},dcos::Vector{String})::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}`](@ref)
+* `setting::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}` - uniquely describes the setting such as the bandlimits ``N_{\pmb u}``, see also [`get_setting(system::String,d::Int,ds::Int,N::Vector{Int},basis_vect::Vector{String})::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}`](@ref) and [`get_setting(system::String,U::Vector{Vector{Int}},N::Vector{Int},basis_vect::Vector{String})::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}`](@ref)
 * `data::Union{Vector{ComplexF64},Nothing}` - the vector of coefficients
 
 # Constructor
@@ -54,7 +54,7 @@ A struct to hold real valued coefficients belonging to indices in a grouped inde
 ```
 
 # Fields
-* `setting::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}` - uniquely describes the setting such as the bandlimits ``N_{\pmb u}``, see also [`get_setting(system::String,d::Int,ds::Int,N::Vector{Int},dcos::Vector{String})::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}`](@ref) and [`get_setting(system::String,U::Vector{Vector{Int}},N::Vector{Int},dcos::Vector{String})::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}`](@ref)
+* `setting::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}` - uniquely describes the setting such as the bandlimits ``N_{\pmb u}``, see also [`get_setting(system::String,d::Int,ds::Int,N::Vector{Int},basis_vect::Vector{String})::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}`](@ref) and [`get_setting(system::String,U::Vector{Vector{Int}},N::Vector{Int},basis_vect::Vector{String})::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}`](@ref)
 * `data::Union{Vector{Float64},Nothing}` - the vector of coefficients
 
 # Constructor

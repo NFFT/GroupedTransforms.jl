@@ -6,16 +6,16 @@ A struct to describe a GroupedTransformation
 
 # Fields
 * `system::String` - choice of `"exp"` or `"cos"` or `"chui1"` or `"chui2"` or `"chui3"` or `"chui4"` or `"mixed"`
-* `setting::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}` - vector of the dimensions, mode, bandwidths and bases for each term/group, see also [`get_setting(system::String,d::Int,ds::Int,N::Vector{Int},dcos::Vector{String})::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}`](@ref) and [`get_setting(system::String,U::Vector{Vector{Int}},N::Vector{Int},dcos::Vector{String})::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}`](@ref)
+* `setting::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}` - vector of the dimensions, mode, bandwidths and bases for each term/group, see also [`get_setting(system::String,d::Int,ds::Int,N::Vector{Int},basis_vect::Vector{String})::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}`](@ref) and [`get_setting(system::String,U::Vector{Vector{Int}},N::Vector{Int},basis_vect::Vector{String})::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}`](@ref)
 * `X::Array{Float64}` - array of nodes
-* `transforms::Vector{Tuple{Int64,Int64}}` - holds the low-dimensional sub transformations* `dcos::Vector{String}` - holds for every dimension if a cosinus basis [true] or exponential basis [false] is used
+* `transforms::Vector{Tuple{Int64,Int64}}` - holds the low-dimensional sub transformations* `basis_vect::Vector{String}` - holds for every dimension if a cosinus basis [true] or exponential basis [false] is used
 
 # Constructor
-    GroupedTransform( system, setting, X, dcos::Vector{String} = Vector{String}([]) )
+    GroupedTransform( system, setting, X, basis_vect::Vector{String} = Vector{String}([]) )
 
 # Additional Constructor
-    GroupedTransform( system, d, ds, N::Vector{Int}, X, dcos::Vector{String} = Vector{String}([]) )
-    GroupedTransform( system, U, N, X, dcos::Vector{String} = Vector{String}([]) )
+    GroupedTransform( system, d, ds, N::Vector{Int}, X, basis_vect::Vector{String} = Vector{String}([]) )
+    GroupedTransform( system, U, N, X, basis_vect::Vector{String} = Vector{String}([]) )
 """
 struct GroupedTransform
     system::String
@@ -26,7 +26,7 @@ struct GroupedTransform
     transforms::Vector{LinearMap{<:Number}}
     matrix::Matrix{<:Number}
     fastmult::Bool
-    dcos::Vector{String}
+    basis_vect::Vector{String}
 
     function GroupedTransform(
         system::String,
@@ -35,7 +35,7 @@ struct GroupedTransform
         },
         X::Array{Float64};
         fastmult::Bool = true,
-        dcos::Vector{String} = Vector{String}([]),
+        basis_vect::Vector{String} = Vector{String}([]),
     )
         
         if !haskey(systems, system)
@@ -43,11 +43,11 @@ struct GroupedTransform
         end
 
         if system == "mixed"
-            if length(dcos) == 0
-                error("please call GroupedTransform with dcos for a NFMT transform.")
+            if length(basis_vect) == 0
+                error("please call GroupedTransform with basis_vect for a NFMT transform.")
             end
-            if length(dcos) != size(X)[1]
-                error("dcos must have an entry for every dimension.")
+            if length(basis_vect) != size(X)[1]
+                error("basis_vect must have an entry for every dimension.")
             end
         end
 
@@ -61,13 +61,13 @@ struct GroupedTransform
             end
         
         elseif system == "mixed"
-            if sum(getindex.([NFMTtools.BASES],dcos).>0)>0 
-                if (minimum(X[getindex.([NFMTtools.BASES],dcos).>0,:]) < 0) || (maximum(X[getindex.([NFMTtools.BASES],dcos).>0,:]) > 1)
+            if sum(getindex.([NFMTtools.BASES],basis_vect).>0)>0 
+                if (minimum(X[getindex.([NFMTtools.BASES],basis_vect).>0,:]) < 0) || (maximum(X[getindex.([NFMTtools.BASES],basis_vect).>0,:]) > 1)
                     error("Nodes must be between 0 and 1 for cosine or Chebyshev dimensions.")
                 end
             end
-            if sum(.!(getindex.([NFMTtools.BASES],dcos).>0))>0 
-                if (minimum(X[(.!(getindex.([NFMTtools.BASES],dcos).>0)),:]) < -0.5) || (maximum(X[(.!(getindex.([NFMTtools.BASES],dcos).>0)),:]) > 0.5)
+            if sum(.!(getindex.([NFMTtools.BASES],basis_vect).>0))>0 
+                if (minimum(X[(.!(getindex.([NFMTtools.BASES],basis_vect).>0)),:]) < -0.5) || (maximum(X[(.!(getindex.([NFMTtools.BASES],basis_vect).>0)),:]) > 0.5)
                     error("Nodes must be between -0.5 and 0.5 for exponentional dimensions.")
                 end
             end
@@ -115,7 +115,7 @@ struct GroupedTransform
                 end
             end
         end
-        new(system, setting, X, transforms, matrix, fastmult, dcos)
+        new(system, setting, X, transforms, matrix, fastmult, basis_vect)
     end
 end
 
@@ -126,10 +126,10 @@ function GroupedTransform(
     N::Vector{Int},
     X::Array{Float64};
     fastmult::Bool = true,
-    dcos::Vector{String} = Vector{String}([])
+    basis_vect::Vector{String} = Vector{String}([])
 )
-    s = get_setting(system, d, ds, N, dcos)
-    return GroupedTransform(system, s, X; fastmult = fastmult, dcos = dcos)
+    s = get_setting(system, d, ds, N, basis_vect)
+    return GroupedTransform(system, s, X; fastmult = fastmult, basis_vect = basis_vect)
 end
 
 function GroupedTransform(
@@ -138,10 +138,10 @@ function GroupedTransform(
     N::Vector{Int},
     X::Array{Float64};
     fastmult::Bool = true,
-    dcos::Vector{String} = Vector{String}([])
+    basis_vect::Vector{String} = Vector{String}([])
 )
-    s = get_setting(system, U, N, dcos)
-    return GroupedTransform(system, s, X; fastmult = fastmult, dcos = dcos)
+    s = get_setting(system, U, N, basis_vect)
+    return GroupedTransform(system, s, X; fastmult = fastmult, basis_vect = basis_vect)
 end
 
 function GroupedTransform(
@@ -150,10 +150,10 @@ function GroupedTransform(
     N::Vector{Vector{Int}},
     X::Array{Float64};
     fastmult::Bool = true,
-    dcos::Vector{String} = Vector{String}([]),
+    basis_vect::Vector{String} = Vector{String}([]),
 )
-    s = get_setting(system, U, N, dcos)
-    return GroupedTransform(system, s, X; fastmult = fastmult, dcos = dcos)
+    s = get_setting(system, U, N, basis_vect)
+    return GroupedTransform(system, s, X; fastmult = fastmult, basis_vect = basis_vect)
 end
 
 @doc raw"""
