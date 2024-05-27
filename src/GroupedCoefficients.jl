@@ -94,7 +94,7 @@ function GroupedCoefficients(
     },
     data::Union{Vector{ComplexF64},Vector{Float64},Nothing} = nothing,
 )
-    if (setting[1][:mode] == NFFTtools || setting[1][:mode] == NFFCTtools)
+    if (setting[1][:mode] == NFFTtools || setting[1][:mode] == NFMTtools)
         return GroupedCoefficientsComplex(setting, data)
     elseif (setting[1][:mode] == NFCTtools  || setting[1][:mode] == CWWTtools )
         return GroupedCoefficientsReal(setting, data)

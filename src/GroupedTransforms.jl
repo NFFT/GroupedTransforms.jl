@@ -23,14 +23,14 @@ end
 include("NFFTtools.jl")
 include("NFCTtools.jl")
 include("CWWTtools.jl")
-include("NFFCTtools.jl")
+include("NFMTtools.jl")
 
 export NFCTtools
 export NFFTtools
 export CWWTtools
-export NFFCTtools
+export NFMTtools
 
-systems = Dict("exp" => NFFTtools, "cos" => NFCTtools, "chui1" => CWWTtools, "chui2" => CWWTtools, "chui3" => CWWTtools, "chui4" => CWWTtools, "mixed" => NFFCTtools)
+systems = Dict("exp" => NFFTtools, "cos" => NFCTtools, "chui1" => CWWTtools, "chui2" => CWWTtools, "chui3" => CWWTtools, "chui4" => CWWTtools, "mixed" => NFMTtools)
 
 function get_setting(
     system::String,
@@ -48,9 +48,9 @@ function get_setting(
     tmp = vcat([0], N)
     U = GroupedTransforms.get_superposition_set(d, ds)
     bandwidths = [fill(tmp[length(u)+1], length(u)) for u in U]
-    if systems[system] == NFFCTtools
+    if systems[system] == NFMTtools
         if length(dcos) == 0
-            error("please call get_setting with dcos for a NFFCT transform.")
+            error("please call get_setting with dcos for a NFMT transform.")
         end
         if length(dcos) != d
             error("dcos must have an entry for every dimension.")
@@ -87,9 +87,9 @@ function get_setting(
         end
     end
 
-    if systems[system] == NFFCTtools
+    if systems[system] == NFMTtools
         if length(dcos) == 0
-            error("please call get_setting with dcos for a NFFCT transform.")
+            error("please call get_setting with dcos for a NFMT transform.")
         end
         if length(dcos) < maximum(U)[1]
             error("dcos must have an entry for every dimension.")
@@ -126,9 +126,9 @@ function get_setting(
         end
     end
 
-    if systems[system] == NFFCTtools
+    if systems[system] == NFMTtools
         if length(dcos) == 0
-            error("please call get_setting with dcos for a NFFCT transform.")
+            error("please call get_setting with dcos for a NFMT transform.")
         end
         if length(dcos) < maximum(U)[1]
             error("dcos must have an entry for every dimension.")
@@ -196,8 +196,8 @@ function get_IndexSet(
             index_set_u = s[:mode].nfft_index_set_without_zeros(s[:bandwidths])
         elseif s[:mode] == NFCTtools
             index_set_u = s[:mode].nfct_index_set_without_zeros(s[:bandwidths])
-        elseif s[:mode] == NFFCTtools
-            index_set_u = s[:mode].nffct_index_set_without_zeros(s[:bandwidths], s[:bases])
+        elseif s[:mode] == NFMTtools
+            index_set_u = s[:mode].nfmt_index_set_without_zeros(s[:bandwidths], s[:bases])
         end
 
         if length(s[:u]) == 1

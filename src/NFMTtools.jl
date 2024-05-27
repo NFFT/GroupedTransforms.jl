@@ -1,4 +1,4 @@
-module NFFCTtools
+module NFMTtools
 
 using LinearMaps
 using NFFT3
@@ -28,7 +28,7 @@ end
 # Output:
  * `freq::Array{Int}` ... all frequencies of the full cube without any vector having a zero entry
 """
-function nffct_index_set_without_zeros(bandwidths::Vector{Int}, dcos::Vector{String})::Array{Int}
+function nfmt_index_set_without_zeros(bandwidths::Vector{Int}, dcos::Vector{String})::Array{Int}
     d = length(bandwidths)
     d == 0 && return [0]
     d == 1 && BASES[dcos[1]]>0 && return collect([1:1; 2:bandwidths[1]-1])
@@ -63,7 +63,7 @@ end
 # Output:
  * `freq::Array{Int}` ... all frequencies of the full cube
 """
-function nffct_index_set(bandwidths::Vector{Int}, dcos::Vector{String})::Array{Int}
+function nfmt_index_set(bandwidths::Vector{Int}, dcos::Vector{String})::Array{Int}
     d = length(bandwidths)
     d == 0 && return [0]
     d == 1 && BASES[dcos[1]]>0 && return collect([0:0; 1:bandwidths[1]-1])
@@ -98,8 +98,8 @@ end
 # Output:
  * `mask::BitArray{1}` ... mask with size of the full cube having zeros whereever a frequency has at least one zero-element and vice-versa
 """
-function nffct_mask(bandwidths::Vector{Int}, dcos::Vector{String})::BitArray{1}
-    freq = nffct_index_set(bandwidths, dcos)
+function nfmt_mask(bandwidths::Vector{Int}, dcos::Vector{String})::BitArray{1}
+    freq = nfmt_index_set(bandwidths, dcos)
     nfft_mask = BitArray{1}
     if length(size(freq)) == 1
         return (freq .!= 0)
@@ -132,7 +132,7 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, dcos::Vector{
         return LinearMap{ComplexF64}(fhat -> fill(fhat[1], M), f -> [sum(f)], M, 1)
     end
 
-    mask = nffct_mask(bandwidths, dcos)
+    mask = nfmt_mask(bandwidths, dcos)
 
     b = copy(bandwidths)
     for (idx, s) in enumerate(dcos)
@@ -206,10 +206,10 @@ function get_matrix(bandwidths::Vector{Int}, X::Array{Float64}, dcos::Vector{Str
     end
 
     if d == 1
-        freq = nffct_index_set_without_zeros(bandwidths, dcos)
+        freq = nfmt_index_set_without_zeros(bandwidths, dcos)
         F_direct = [get_phi(append!(Vector{Float64}(),x), append!(Vector{Int}(),n), dcos) for x in vec(X), n in freq]
     else
-        freq = nffct_index_set_without_zeros(bandwidths, dcos)
+        freq = nfmt_index_set_without_zeros(bandwidths, dcos)
         F_direct = [get_phi(Vector(x), Vector(n), dcos) for x in eachcol(X), n in eachcol(freq)]
     end
 
