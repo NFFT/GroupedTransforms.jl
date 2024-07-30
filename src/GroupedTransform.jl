@@ -18,7 +18,7 @@ A struct to describe a GroupedTransformation
     GroupedTransform( system, d, ds, N::Vector{Int}, X, basis_vect::Vector{String} = Vector{String}([]) )
     GroupedTransform( system, U, N, X, basis_vect::Vector{String} = Vector{String}([]) )
 """
-struct GroupedTransform
+mutable struct GroupedTransform
     system::String
     setting::Vector{
         NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}
@@ -79,7 +79,9 @@ struct GroupedTransform
                 transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], 1)
             elseif system =="chui2"
                 transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], 2)
+                transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], 2)
             elseif system =="chui3"
+                transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], 3)
                 transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], 3)
             elseif system =="chui4"
                 transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], 4)
@@ -199,6 +201,7 @@ end
 
 This function returns the actual matrix of the transformation. This is not available for the wavelet basis
 """
+
 function get_matrix(F::GroupedTransform)::Matrix{<:Number}
     if F.system == "chui1" || F.system == "chui2"  || F.system == "chui3"||F.system == "chui4"
 
@@ -219,4 +222,4 @@ function get_matrix(F::GroupedTransform)::Matrix{<:Number}
         end
     end
     return F_direct
-end
+end 
