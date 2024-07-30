@@ -9,6 +9,9 @@ X = rand(d, M) .- 0.5
 # set up transform ###################################################
 
 F = GroupedTransform("exp", d, ds, [2^12, 2^6, 2^4], X)
+get_NumFreq(F.setting)
+get_IndexSet(F.setting, d)
+F_direct = get_matrix(F)
 
 # compute transform with NFFT ########################################
 

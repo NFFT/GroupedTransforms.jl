@@ -17,7 +17,7 @@ U[3] = [1, 2]
 
 # set up transform ###################################################
 
-F = GroupedTransform("mixed", U, [0, 64, 16], X, basis_vect)
+F = GroupedTransform("mixed", U, [0, 64, 16], X; basis_vect=basis_vect)
 F_direct = get_matrix(F)
 
 # compute transform with NFFT ########################################
