@@ -8,7 +8,6 @@ M = 1_000
 X = rand(d, M) .- 0.5
 # set up transform ###################################################
 
-for i=1:20000
 F = GroupedTransform("exp", d, ds, [2^12, 2^6, 2^4], X)
 
 # compute transform with NFFT ########################################
@@ -39,7 +38,7 @@ GroupedTransforms.set_data!(fhat, ghat.data)
 ###
 
 f = F * fhat
-#=
+
 # compute transform without NFFT #####################################
 
 f_direct = F_direct * vec(fhat)
@@ -64,6 +63,4 @@ fhat_direct = F_direct' * y
 # compare results ####################################################
 
 error = norm(vec(fhat) - fhat_direct)
-@test error < 1e-5 =#
-
-end
+@test error < 1e-5 
