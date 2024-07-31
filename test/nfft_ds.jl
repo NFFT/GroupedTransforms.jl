@@ -66,4 +66,4 @@ fhat_direct = F_direct' * y
 # compare results ####################################################
 
 error = norm(vec(fhat) - fhat_direct)
-@test error < 1e-5 
+@test error < 1e-5
