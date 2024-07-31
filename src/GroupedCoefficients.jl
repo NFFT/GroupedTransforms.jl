@@ -21,7 +21,10 @@ A struct to hold complex coefficients belonging to indices in a grouped index se
 """
 struct GroupedCoefficientsComplex <: GroupedCoefficients
     setting::Vector{
-        NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}
+        NamedTuple{
+            (:u, :mode, :bandwidths, :bases),
+            Tuple{Vector{Int},Module,Vector{Int},Vector{String}},
+        },
     }
     data::Vector{ComplexF64}
 
