@@ -21,7 +21,10 @@ A struct to describe a GroupedTransformation
 mutable struct GroupedTransform
     system::String
     setting::Vector{
-        NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}
+        NamedTuple{
+            (:u, :mode, :bandwidths, :bases),
+            Tuple{Vector{Int},Module,Vector{Int},Vector{String}},
+        },
     }
     X::Array{Float64}
     transforms::Vector{LinearMap{<:Number}}
@@ -32,13 +35,15 @@ mutable struct GroupedTransform
     function GroupedTransform(
         system::String,
         setting::Vector{
-            NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}
+            NamedTuple{
+                (:u, :mode, :bandwidths, :bases),
+                Tuple{Vector{Int},Module,Vector{Int},Vector{String}},
+            },
         },
         X::Array{Float64};
         fastmult::Bool = true,
         basis_vect::Vector{String} = Vector{String}([]),
     )
-        
         if !haskey(systems, system)
             error("System not found.")
         end
@@ -52,7 +57,13 @@ mutable struct GroupedTransform
             end
         end
 
-        if (system == "exp"  || system =="chui1" || system =="chui2"||system =="chui3"||system =="chui4")
+        if (
+            system == "exp" ||
+            system == "chui1" ||
+            system == "chui2" ||
+            system == "chui3" ||
+            system == "chui4"
+        )
             if (minimum(X) < -0.5) || (maximum(X) >= 0.5)
                 error("Nodes must be between -0.5 and 0.5.")
             end
@@ -127,7 +138,7 @@ function GroupedTransform(
     N::Vector{Int},
     X::Array{Float64};
     fastmult::Bool = true,
-    basis_vect::Vector{String} = Vector{String}([])
+    basis_vect::Vector{String} = Vector{String}([]),
 )
     s = get_setting(system, d, ds, N, basis_vect)
     return GroupedTransform(system, s, X; fastmult = fastmult, basis_vect = basis_vect)
@@ -139,7 +150,7 @@ function GroupedTransform(
     N::Vector{Int},
     X::Array{Float64};
     fastmult::Bool = true,
-    basis_vect::Vector{String} = Vector{String}([])
+    basis_vect::Vector{String} = Vector{String}([]),
 )
     s = get_setting(system, U, N, basis_vect)
     return GroupedTransform(system, s, X; fastmult = fastmult, basis_vect = basis_vect)
@@ -170,7 +181,7 @@ function Base.:*(F::GroupedTransform, fhat::GroupedCoefficients)::Vector{<:Numbe
         f = Vector{Task}(undef, length(F.transforms))
         for i in eachindex(F.transforms)
             f[i] = Threads.@spawn (F.transforms[i]) * (fhat[F.setting[i][:u]]) 
-        end  
+        end
         #println(length(F.transforms))
         #return Folds.mapreduce(i -> (F.transforms[i]) * (fhat[F.setting[i][:u]]), +, 1:length(F.transforms))
         #return ThreadsX.sum((F.transforms[i]) * (fhat[F.setting[i][:u]]) for i=1:length(F.transforms))
@@ -198,10 +209,10 @@ function Base.:*(F::GroupedTransform, f::Vector{<:Number})::GroupedCoefficients
         fhat = GroupedCoefficients(F.setting)
         for i in eachindex(F.transforms)
             fhat[F.setting[i][:u]] = fetch(fh[i])
-        end 
-        return fhat 
+        end
+        return fhat
     else
-        return GroupedCoefficients(F.setting, F.matrix'*f)
+        return GroupedCoefficients(F.setting, F.matrix' * f)
     end
 end
 
