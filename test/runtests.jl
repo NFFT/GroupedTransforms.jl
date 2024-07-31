@@ -1,4 +1,4 @@
-@everywhere using GroupedTransforms
+using GroupedTransforms
 using Test
 using Aqua
 
