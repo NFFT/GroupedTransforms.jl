@@ -71,7 +71,6 @@ mutable struct GroupedTransform
             if (minimum(X) < 0) || (maximum(X) > 0.5)
                 error("Nodes must be between 0 and 0.5.")
             end
-        
         elseif system == "mixed"
             if sum(getindex.([NFMTtools.BASES], basis_vect) .> 0) > 0
                 if (minimum(X[getindex.([NFMTtools.BASES], basis_vect).>0, :]) < 0) ||
