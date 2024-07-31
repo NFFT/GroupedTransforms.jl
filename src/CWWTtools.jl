@@ -49,7 +49,6 @@ end
  * `F::LinearMap{ComplexF64}` ... Linear maps of the sparse Matrices
 """
 function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, m::Int)::LinearMap
-    
     # fix ------------------------------------------------------
     if size(X, 1) == 1
         X = vec(X)
