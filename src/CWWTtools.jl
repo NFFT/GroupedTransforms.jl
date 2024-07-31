@@ -71,7 +71,6 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, m::Int)::Line
         J = ones(M)
         V = ones(M)
         return LinearMap(sparse(I, J, V))
-    
     elseif d == 1    #1-dimensional terms
         I = collect(1:M)
         J = Int.(ones(M))
