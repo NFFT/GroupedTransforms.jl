@@ -5,38 +5,65 @@ using SparseArrays
 A struct to describe a GroupedTransformation
 
 # Fields
-* `system::String` - choice of `"exp"` or `"cos"` or `"chui1"` or `"chui2"` or `"chui3"` or `"chui4"`
-* `setting::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}` - vector of the dimensions, mode, and bandwidths for each term/group, see also [`get_setting(system::String,d::Int,ds::Int,N::Vector{Int})::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}`](@ref) and [`get_setting(system::String,U::Vector{Vector{Int}},N::Vector{Int})::Vector{NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}}}`](@ref)
+* `system::String` - choice of `"exp"` or `"cos"` or `"chui1"` or `"chui2"` or `"chui3"` or `"chui4"` or `"mixed"`
+* `setting::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}` - vector of the dimensions, mode, bandwidths and bases for each term/group, see also [`get_setting(system::String,d::Int,ds::Int,N::Vector{Int},basis_vect::Vector{String})::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}`](@ref) and [`get_setting(system::String,U::Vector{Vector{Int}},N::Vector{Int},basis_vect::Vector{String})::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}`](@ref)
 * `X::Array{Float64}` - array of nodes
-* `transforms::Vector{Tuple{Int64,Int64}}` - holds the low-dimensional sub transformations
+* `transforms::Vector{LinearMap}` - holds the low-dimensional sub transformations
+* `basis_vect::Vector{String}` - holds for every dimension if a cosinus basis [true] or exponential basis [false] is used
 
 # Constructor
-    GroupedTransform( system, setting, X )
+    GroupedTransform( system, setting, X, basis_vect::Vector{String} = Vector{String}([]) )
 
 # Additional Constructor
-    GroupedTransform( system, d, ds, N::Vector{Int}, X )
-    GroupedTransform( system, U, N, X )
+    GroupedTransform( system, d, ds, N::Vector{Int}, X, basis_vect::Vector{String} = Vector{String}([]) )
+    GroupedTransform( system, U, N, X, basis_vect::Vector{String} = Vector{String}([]) )
 """
-struct GroupedTransform
+mutable struct GroupedTransform
     system::String
     setting::Vector{
-        NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}},
+        NamedTuple{
+            (:u, :mode, :bandwidths, :bases),
+            Tuple{Vector{Int},Module,Vector{Int},Vector{String}},
+        },
     }
     X::Array{Float64}
-    transforms::Vector{Tuple{Int64,Int64}}
+    transforms::Vector{LinearMap{<:Number}}
+    matrix::Matrix{<:Number}
+    fastmult::Bool
+    basis_vect::Vector{String}
 
     function GroupedTransform(
         system::String,
         setting::Vector{
-            NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}},
+            NamedTuple{
+                (:u, :mode, :bandwidths, :bases),
+                Tuple{Vector{Int},Module,Vector{Int},Vector{String}},
+            },
         },
-        X::Array{Float64}
+        X::Array{Float64};
+        fastmult::Bool = true,
+        basis_vect::Vector{String} = Vector{String}([]),
     )
         if !haskey(systems, system)
             error("System not found.")
         end
 
-        if (system == "exp"  || system =="chui1" || system =="chui2"||system =="chui3"||system =="chui4")
+        if system == "mixed"
+            if length(basis_vect) == 0
+                error("please call GroupedTransform with basis_vect for a NFMT transform.")
+            end
+            if length(basis_vect) != size(X)[1]
+                error("basis_vect must have an entry for every dimension.")
+            end
+        end
+
+        if (
+            system == "exp" ||
+            system == "chui1" ||
+            system == "chui2" ||
+            system == "chui3" ||
+            system == "chui4"
+        )
             if (minimum(X) < -0.5) || (maximum(X) >= 0.5)
                 error("Nodes must be between -0.5 and 0.5.")
             end
@@ -44,33 +71,89 @@ struct GroupedTransform
             if (minimum(X) < 0) || (maximum(X) > 0.5)
                 error("Nodes must be between 0 and 0.5.")
             end
+        elseif system == "mixed"
+            if sum(getindex.([NFMTtools.BASES], basis_vect) .> 0) > 0
+                if (minimum(X[getindex.([NFMTtools.BASES], basis_vect).>0, :]) < 0) ||
+                   (maximum(X[getindex.([NFMTtools.BASES], basis_vect).>0, :]) > 1)
+                    error(
+                        "Nodes must be between 0 and 1 for cosine or Chebyshev dimensions.",
+                    )
+                end
+            end
+            if sum(.!(getindex.([NFMTtools.BASES], basis_vect) .> 0)) > 0
+                if (
+                    minimum(X[(.!(getindex.([NFMTtools.BASES], basis_vect) .> 0)), :]) <
+                    -0.5
+                ) || (
+                    maximum(X[(.!(getindex.([NFMTtools.BASES], basis_vect) .> 0)), :]) >
+                    0.5
+                )
+                    error(
+                        "Nodes must be between -0.5 and 0.5 for exponentional dimensions.",
+                    )
+                end
+            end
         end
+        if (
+            system == "chui1" ||
+            system == "chui2" ||
+            system == "chui3" ||
+            system == "chui4"
+        )
+            fastmult = true
+        end
+        if fastmult
+            matrix = Matrix{Number}(undef, 1, 1)
+            transforms = Vector{LinearMap{<:Number}}(undef, length(setting))
 
-        transforms = Vector{Tuple{Int64,Int64}}(undef, length(setting))
-        f = Vector{Tuple{Int64,Future}}(undef, length(setting))
-        w = (nworkers() == 1) ? 1 : 2
+            for (idx, s) in enumerate(setting)
+                if system == "chui1"
+                    transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], 1)
+                elseif system == "chui2"
+                    transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], 2)
+                elseif system == "chui3"
+                    transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], 3)
+                elseif system == "chui4"
+                    transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], 4)
+                elseif system == "mixed"
+                    transforms[idx] =
+                        s[:mode].get_transform(s[:bandwidths], X[s[:u], :], s[:bases])
 
-        for (idx, s) in enumerate(setting)
-            if system =="chui1"
-                f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], 1 ))
-            elseif system =="chui2"
-                f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], 2))
-            elseif system =="chui3"
-                f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], 3))
-            elseif system =="chui4"
-                f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :], 4))
+                else
+                    transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :])
+                end
+            end
+        else
+            transforms = Vector{Tuple{Int64,Int64}}()
+            if (
+                system == "chui1" ||
+                system == "chui2" ||
+                system == "chui3" ||
+                system == "chui4"
+            )
+                error(
+                    "Direct computation with full matrix not supported for wavelet basis.",
+                )
+            elseif system == "mixed"
+                s1 = setting[1]
+                matrix = s1[:mode].get_matrix(s1[:bandwidths], X[s1[:u], :], s1[:bases])
+                for (idx, s) in enumerate(setting)
+                    idx == 1 && continue
+                    matrix = hcat(
+                        matrix,
+                        s[:mode].get_matrix(s[:bandwidths], X[s[:u], :], s[:bases]),
+                    )
+                end
             else
-                f[idx] = (w, remotecall(s[:mode].get_transform, w, s[:bandwidths], X[s[:u], :]))
-            end
-            if nworkers() != 1
-                w = (w == nworkers()) ? 2 : (w + 1)
+                s1 = setting[1]
+                matrix = s1[:mode].get_matrix(s1[:bandwidths], X[s1[:u], :])
+                for (idx, s) in enumerate(setting)
+                    idx == 1 && continue
+                    matrix = hcat(matrix, s[:mode].get_matrix(s[:bandwidths], X[s[:u], :]))
+                end
             end
         end
-
-        for (idx, s) in enumerate(setting)
-            transforms[idx] = (f[idx][1], fetch(f[idx][2]))
-        end
-        new(system, setting, X, transforms)
+        new(system, setting, X, transforms, matrix, fastmult, basis_vect)
     end
 end
 
@@ -79,22 +162,36 @@ function GroupedTransform(
     d::Int,
     ds::Int,
     N::Vector{Int},
-    X::Array{Float64},
-    #m::Int64 = 1,
+    X::Array{Float64};
+    fastmult::Bool = true,
+    basis_vect::Vector{String} = Vector{String}([]),
 )
-    s = get_setting(system, d, ds, N)
-    return GroupedTransform(system, s, X)
+    s = get_setting(system, d, ds, N, basis_vect)
+    return GroupedTransform(system, s, X; fastmult = fastmult, basis_vect = basis_vect)
 end
 
 function GroupedTransform(
     system::String,
     U::Vector{Vector{Int}},
     N::Vector{Int},
-    X::Array{Float64},
-    #m::Int64 = 1,
+    X::Array{Float64};
+    fastmult::Bool = true,
+    basis_vect::Vector{String} = Vector{String}([]),
 )
-    s = get_setting(system, U, N)
-    return GroupedTransform(system, s, X)
+    s = get_setting(system, U, N, basis_vect)
+    return GroupedTransform(system, s, X; fastmult = fastmult, basis_vect = basis_vect)
+end
+
+function GroupedTransform(
+    system::String,
+    U::Vector{Vector{Int}},
+    N::Vector{Vector{Int}},
+    X::Array{Float64};
+    fastmult::Bool = true,
+    basis_vect::Vector{String} = Vector{String}([]),
+)
+    s = get_setting(system, U, N, basis_vect)
+    return GroupedTransform(system, s, X; fastmult = fastmult, basis_vect = basis_vect)
 end
 
 @doc raw"""
@@ -106,14 +203,18 @@ function Base.:*(F::GroupedTransform, fhat::GroupedCoefficients)::Vector{<:Numbe
     if F.setting != fhat.setting
         error("The GroupedTransform and the GroupedCoefficients have different settings")
     end
-    f = Vector{Future}(undef, length(F.transforms))
-    for i = 1:length(F.transforms)
-        f[i] =
-            @spawnat F.transforms[i][1] (F.setting[i][:mode].trafos[F.transforms[i][2]]) *
-                                        (fhat[F.setting[i][:u]])
+    if F.fastmult
+        f = Vector{Task}(undef, length(F.transforms))
+        for i in eachindex(F.transforms)
+            f[i] = Threads.@spawn (F.transforms[i]) * (fhat[F.setting[i][:u]])
+        end
+        #println(length(F.transforms))
+        #return Folds.mapreduce(i -> (F.transforms[i]) * (fhat[F.setting[i][:u]]), +, 1:length(F.transforms))
+        #return ThreadsX.sum((F.transforms[i]) * (fhat[F.setting[i][:u]]) for i=1:length(F.transforms))
+        return sum(i -> fetch(f[i]), eachindex(F.transforms))
+    else
+        return F.matrix * fhat.data
     end
-
-    return sum(i -> fetch(f[i]), 1:length(F.transforms))
 end
 
 @doc raw"""
@@ -122,17 +223,23 @@ end
 Overloads the * notation in order to achieve the adjoint transform `f = F*f`.
 """
 function Base.:*(F::GroupedTransform, f::Vector{<:Number})::GroupedCoefficients
-    fh = Vector{Future}(undef, length(F.transforms))
-    for i = 1:length(F.transforms)
-        fh[i] =
-            @spawnat F.transforms[i][1] (F.setting[i][:mode].trafos[F.transforms[i][2]])' *
-                                        f
+    if F.fastmult
+        #fhat = GroupedCoefficients(F.setting)
+        #Threads.@threads for i in eachindex(F.transforms)
+        #    fhat[F.setting[i][:u]] = (F.transforms[i])' * f
+        #end        fh = Vector{Future}(undef, length(F.transforms))
+        fh = Vector{Task}(undef, length(F.transforms))
+        for i in eachindex(F.transforms)
+            fh[i] = Threads.@spawn (F.transforms[i])' * f
+        end
+        fhat = GroupedCoefficients(F.setting)
+        for i in eachindex(F.transforms)
+            fhat[F.setting[i][:u]] = fetch(fh[i])
+        end
+        return fhat
+    else
+        return GroupedCoefficients(F.setting, F.matrix' * f)
     end
-    fhat = GroupedCoefficients(F.setting)
-    for i = 1:length(F.transforms)
-        fhat[F.setting[i][:u]] = fetch(fh[i])
-    end
-    return fhat
 end
 
 @doc raw"""
@@ -149,72 +256,48 @@ end
 
 This function overloads getindex of GroupedTransform such that you can do `F[[1,3]]` to obtain the transform of the corresponding ANOVA term defined by `u`.
 """
-function Base.:getindex(F::GroupedTransform, u::Vector{Int})#::LinearMap{<:Number}
+function Base.:getindex(F::GroupedTransform, u::Vector{Int})::LinearMap{<:Number}
     idx = findfirst(s -> s[:u] == u, F.setting)
     if isnothing(idx)
         error("This term is not contained")
+    elseif F.fastmult
+        return F.transforms[idx]
     else
-        if F.system == "cos"
-            function trafo_cos(fhat::Vector{Float64})::Vector{Float64}
-                return remotecall_fetch(
-                    F.setting[idx][:mode].trafos[F.transforms[idx][2]],
-                    F.transforms[idx][1],
-                    fhat,
-                )
-            end
-
-            function adjoint_cos(f::Vector{Float64})::Vector{Float64}
-                return remotecall_fetch(
-                    F.setting[idx][:mode].trafos[F.transforms[idx][2]]',
-                    F.transforms[idx][1],
-                    f,
-                )
-            end
-
-            N = prod(F.setting[idx][:bandwidths] .- 1)
-            M = size(F.X, 2)
-            return LinearMap{Float64}(trafo_cos, adjoint_cos, M, N)
-        elseif F.system == "exp"
-            function trafo_exp(fhat::Vector{ComplexF64})::Vector{ComplexF64}
-                return remotecall_fetch(
-                    F.setting[idx][:mode].trafos[F.transforms[idx][2]],
-                    F.transforms[idx][1],
-                    fhat,
-                )
-            end
-
-            function adjoint_exp(f::Vector{ComplexF64})::Vector{ComplexF64}
-                return remotecall_fetch(
-                    F.setting[idx][:mode].trafos[F.transforms[idx][2]]',
-                    F.transforms[idx][1],
-                    f,
-                )
-            end
-
-            N = prod(F.setting[idx][:bandwidths] .- 1)
-            M = size(F.X, 2)
-            return LinearMap{ComplexF64}(trafo_exp, adjoint_exp, M, N)
-
-        elseif F.system == "chui1" || F.system == "chui2"  || F.system == "chui3"||F.system == "chui4"
-            #S = SparseMatrixCSC{Float64, Int}
-            S = @spawnat F.transforms[idx][1] (F.setting[idx][:mode].trafos[F.transforms[idx][2]])
-            return SparseMatrixCSC{Float64, Int}(fetch(S))
-        end
+        return get_matrix(F)
     end
 end
-
 
 @doc raw"""
     get_matrix( F::GroupedTransform )::Matrix{<:Number}
 
 This function returns the actual matrix of the transformation. This is not available for the wavelet basis
 """
+
 function get_matrix(F::GroupedTransform)::Matrix{<:Number}
-    s1 = F.setting[1]
-    F_direct = s1[:mode].get_matrix(s1[:bandwidths], F.X[s1[:u], :])
-    for (idx, s) in enumerate(F.setting)
-        idx == 1 && continue
-        F_direct = hcat(F_direct, s[:mode].get_matrix(s[:bandwidths], F.X[s[:u], :]))
+    if (
+        F.system == "chui1" ||
+        F.system == "chui2" ||
+        F.system == "chui3" ||
+        F.system == "chui4"
+    )
+        error("Direct computation with full matrix not supported for wavelet basis.")
+    elseif F.system == "mixed"
+        s1 = F.setting[1]
+        F_direct = s1[:mode].get_matrix(s1[:bandwidths], F.X[s1[:u], :], s1[:bases])
+        for (idx, s) in enumerate(F.setting)
+            idx == 1 && continue
+            F_direct = hcat(
+                F_direct,
+                s[:mode].get_matrix(s[:bandwidths], F.X[s[:u], :], s[:bases]),
+            )
+        end
+    else
+        s1 = F.setting[1]
+        F_direct = s1[:mode].get_matrix(s1[:bandwidths], F.X[s1[:u], :])
+        for (idx, s) in enumerate(F.setting)
+            idx == 1 && continue
+            F_direct = hcat(F_direct, s[:mode].get_matrix(s[:bandwidths], F.X[s[:u], :]))
+        end
     end
     return F_direct
 end

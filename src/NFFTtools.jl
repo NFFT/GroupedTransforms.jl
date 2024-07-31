@@ -31,6 +31,7 @@ function nfft_index_set_without_zeros(bandwidths::Vector{Int})::Array{Int}
     d == 0 && return [0]
     d == 1 && return collect(Int.([-bandwidths[1]/2:-1; 1:bandwidths[1]/2-1]))
 
+    bandwidths = reverse(bandwidths)
     tmp = Tuple([Int.([-bw/2:-1; 1:bw/2-1]) for bw in bandwidths])
     tmp = Iterators.product(tmp...)
     freq = Matrix{Int}(undef, d, prod(bandwidths .- 1))
@@ -55,6 +56,7 @@ function nfft_index_set(bandwidths::Vector{Int})::Array{Int}
     d == 0 && return [0]
     d == 1 && return collect(Int.(-bandwidths[1]/2:bandwidths[1]/2-1))
 
+    bandwidths = reverse(bandwidths)
     tmp = Tuple([Int.(-bw/2:bw/2-1) for bw in bandwidths])
     tmp = Iterators.product(tmp...)
     freq = Matrix{Int}(undef, d, prod(bandwidths))
@@ -84,11 +86,6 @@ function nfft_mask(bandwidths::Vector{Int})::BitArray{1}
     end
 end
 
-"""
-trafos::Vector{LinearMap{ComplexF64}}
-This vector is local to the module on every worker.  It stores the transformations in order to access them later.
-"""
-trafos = Vector{LinearMap{ComplexF64}}(undef, 1)
 
 """
 `F = get_transform(bandwidths, X)
@@ -100,7 +97,7 @@ trafos = Vector{LinearMap{ComplexF64}}(undef, 1)
 # Output:
  * `F::LinearMap{ComplexF64}` ... Linear map of the Fourier-transform implemented by the NFFT
 """
-function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::Int64
+function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::LinearMap
     if size(X, 1) == 1
         X = vec(X)
         d = 1
@@ -110,10 +107,7 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::Int64
     end
 
     if bandwidths == []
-        idx = length(trafos)
-        trafos[idx] = LinearMap{ComplexF64}(fhat -> fill(fhat[1], M), f -> [sum(f)], M, 1)
-        append!(trafos, Vector{LinearMap{ComplexF64}}(undef, 1))
-        return idx
+        return LinearMap{ComplexF64}(fhat -> fill(fhat[1], M), f -> [sum(f)], M, 1)
     end
 
     mask = nfft_mask(bandwidths)
@@ -135,10 +129,7 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64})::Int64
     end
 
     N = prod(bandwidths .- 1)
-    idx = length(trafos)
-    trafos[idx] = LinearMap{ComplexF64}(trafo, adjoint, M, N)
-    append!(trafos, Vector{LinearMap{ComplexF64}}(undef, 1))
-    return idx
+    return LinearMap{ComplexF64}(trafo, adjoint, M, N)
 end
 
 """

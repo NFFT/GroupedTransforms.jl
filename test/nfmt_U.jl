@@ -1,22 +1,28 @@
 using LinearAlgebra
-using GroupedTransforms
 
 d = 4
 ds = 3
 
+basis_vect = ["exp", "alg", "cos", "alg"]
+
 M = 1_000
-X = rand(d, M) .- 0.5
+
+X = rand(d, M)
+X[1, :] = X[1, :] .- 0.5
+
+U = Vector{Vector{Int64}}(undef, 3)
+U[1] = []
+U[2] = [1]
+U[3] = [1, 2]
+
 # set up transform ###################################################
 
-F = GroupedTransform("exp", d, ds, [2^12, 2^6, 2^4], X)
-get_NumFreq(F.setting)
-get_IndexSet(F.setting, d)
+F = GroupedTransform("mixed", U, [0, 64, 16], X; basis_vect = basis_vect)
 F_direct = get_matrix(F)
 
 # compute transform with NFFT ########################################
 
 fhat = GroupedCoefficients(F.setting)
-
 for i = 1:length(F.setting)
     u = F.setting[i][:u]
     fhat[u] = rand(ComplexF64, size(fhat[u]))
@@ -35,7 +41,7 @@ fhat[1] = 1.0 + 1.0 * im
 2 * fhat
 fhat + ghat
 fhat - ghat
-F[[1, 2]]
+#F[[1, 2]]
 GroupedTransforms.set_data!(fhat, ghat.data)
 
 ###
