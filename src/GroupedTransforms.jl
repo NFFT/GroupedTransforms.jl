@@ -187,8 +187,8 @@ end
 function get_NumFreq(
     setting::Vector{
         NamedTuple{
-                (:u, :mode, :bandwidths, :bases),
-                Tuple{Vector{Int},Module,Vector{Int},Vector{String}},
+            (:u, :mode, :bandwidths, :bases),
+            Tuple{Vector{Int},Module,Vector{Int},Vector{String}},
         },
     },
 )::Int
