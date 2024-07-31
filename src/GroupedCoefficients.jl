@@ -65,7 +65,10 @@ A struct to hold real valued coefficients belonging to indices in a grouped inde
 """
 struct GroupedCoefficientsReal <: GroupedCoefficients
     setting::Vector{
-        NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}
+        NamedTuple{
+            (:u, :mode, :bandwidths, :bases),
+            Tuple{Vector{Int},Module,Vector{Int},Vector{String}},
+        },
     }
     data::Vector{Float64}
 
