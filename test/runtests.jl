@@ -9,4 +9,5 @@ tests = ["nfct_ds", "nfct_U", "nfft_ds", "nfft_U", "cwwt_ds", "cwwt_U", "nfmt_ds
 
 for t in tests
     include("$(t).jl")
+    GC.gc()
 end
