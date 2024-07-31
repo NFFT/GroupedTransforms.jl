@@ -166,7 +166,7 @@ end
 function get_phi(x::Vector{Float64}, k::Vector{Int64}, basis_vect::Vector{String})::ComplexF64
     p = 1
     for (idx, s) in enumerate(basis_vect)
-        if (BASES[s]==1)
+        if (BASES[s] == 1)
             if k[idx] ≠ 0
                 p *= sqrt(2.0)*cos(pi*k[idx]*x[idx])
             end
