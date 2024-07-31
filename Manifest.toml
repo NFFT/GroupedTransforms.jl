@@ -2,7 +2,7 @@
 
 julia_version = "1.10.4"
 manifest_format = "2.0"
-project_hash = "8a8b2b2f00787843a5fc77e697c06e4affcf1387"
+project_hash = "e55923f8bfe3087646e2f29811c2dddf5c07cb89"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -83,10 +83,6 @@ version = "0.7.9"
 [[deps.Dates]]
 deps = ["Printf"]
 uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
-
-[[deps.Distributed]]
-deps = ["Random", "Serialization", "Sockets"]
-uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[deps.DocStringExtensions]]
 deps = ["LibGit2"]

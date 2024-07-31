@@ -1,4 +1,3 @@
-using Distributed
 @everywhere using GroupedTransforms
 using Test
 using Aqua

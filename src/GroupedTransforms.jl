@@ -1,7 +1,6 @@
 module GroupedTransforms
 
 using LinearMaps
-using Distributed
 using Combinatorics
 using Aqua
 using LinearAlgebra
