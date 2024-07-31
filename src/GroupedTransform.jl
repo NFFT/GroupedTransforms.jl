@@ -267,4 +267,4 @@ function get_matrix(F::GroupedTransform)::Matrix{<:Number}
         end
     end
     return F_direct
-end 
+end

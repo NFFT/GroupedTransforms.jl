@@ -30,7 +30,15 @@ export NFFTtools
 export CWWTtools
 export NFMTtools
 
-systems = Dict("exp" => NFFTtools, "cos" => NFCTtools, "chui1" => CWWTtools, "chui2" => CWWTtools, "chui3" => CWWTtools, "chui4" => CWWTtools, "mixed" => NFMTtools)
+systems = Dict(
+    "exp" => NFFTtools,
+    "cos" => NFCTtools,
+    "chui1" => CWWTtools,
+    "chui2" => CWWTtools,
+    "chui3" => CWWTtools,
+    "chui4" => CWWTtools,
+    "mixed" => NFMTtools,
+)
 
 function get_setting(
     system::String,
@@ -38,7 +46,12 @@ function get_setting(
     ds::Int,
     N::Vector{Int},
     basis_vect::Vector{String} = Vector{String}([]),
-)::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}
+    )::Vector{
+        NamedTuple{
+            (:u, :mode, :bandwidths, :bases),
+            Tuple{Vector{Int},Module,Vector{Int},Vector{String}},
+        },
+    }
     if !haskey(systems, system)
         error("System not found.")
     end
@@ -56,11 +69,17 @@ function get_setting(
             error("basis_vect must have an entry for every dimension.")
         end
         return [
-            (u = U[idx], mode = systems[system], bandwidths = bandwidths[idx], bases = basis_vect[U[idx]]) for idx = 1:length(U)
-        ]       
+            (
+                u = U[idx],
+                mode = systems[system],
+                bandwidths = bandwidths[idx],
+                bases = basis_vect[U[idx]],
+            ) for idx = 1:length(U)
+        ]     
     else
         return [
-            (u = U[idx], mode = systems[system], bandwidths = bandwidths[idx], bases = []) for idx = 1:length(U)
+            (u = U[idx], mode = systems[system], bandwidths = bandwidths[idx], bases = [])
+            for idx = 1:length(U)
         ]
     end
 end
@@ -70,7 +89,12 @@ function get_setting(
     U::Vector{Vector{Int}},
     N::Vector{Int},
     basis_vect::Vector{String} = Vector{String}([]),
-)::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}
+    )::Vector{
+        NamedTuple{
+            (:u, :mode, :bandwidths, :bases),
+            Tuple{Vector{Int},Module,Vector{Int},Vector{String}},
+        },
+    }
     if !haskey(systems, system)
         error("System not found.")
     end
@@ -95,11 +119,17 @@ function get_setting(
             error("basis_vect must have an entry for every dimension.")
         end
         return [
-            (u = U[idx], mode = systems[system], bandwidths = bws[idx], bases = basis_vect[U[idx]]) for idx = 1:length(U)
-        ]       
+            (
+                u = U[idx],
+                mode = systems[system],
+                bandwidths = bws[idx],
+                bases = basis_vect[U[idx]],
+            ) for idx = 1:length(U)
+        ]   
     else
         return [
-            (u = U[idx], mode = systems[system], bandwidths = bws[idx], bases = []) for idx = 1:length(U)
+            (u = U[idx], mode = systems[system], bandwidths = bws[idx], bases = []) for
+            idx = 1:length(U)
         ]
     end
 end
@@ -109,7 +139,12 @@ function get_setting(
     U::Vector{Vector{Int}},
     N::Vector{Vector{Int}},
     basis_vect::Vector{String} = Vector{String}([]),
-)::Vector{NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}}
+    )::Vector{
+        NamedTuple{
+            (:u, :mode, :bandwidths, :bases),
+            Tuple{Vector{Int},Module,Vector{Int},Vector{String}},
+        },
+    }
     if !haskey(systems, system)
         error("System not found.")
     end
@@ -119,7 +154,7 @@ function get_setting(
         if u == []
             bws[i] = fill(0, length(u))
         else
-            if length(N[i])!=length(u)
+            if length(N[i]) != length(u)
                 error("Vector N has for the set", u, "not the right length")
             end
             bws[i] = N[i]
@@ -134,18 +169,25 @@ function get_setting(
             error("basis_vect must have an entry for every dimension.")
         end
         return [
-            (u = U[idx], mode = systems[system], bandwidths = bws[idx], bases = basis_vect[U[idx]]) for idx = 1:length(U)
-        ]       
+            (
+                u = U[idx],
+                mode = systems[system],
+                bandwidths = bws[idx],
+                bases = basis_vect[U[idx]],
+            ) for idx = 1:length(U)
+        ]   
     else
         return [
-            (u = U[idx], mode = systems[system], bandwidths = bws[idx], bases = []) for idx = 1:length(U)
+            (u = U[idx], mode = systems[system], bandwidths = bws[idx], bases = []) for
+            idx = 1:length(U)
         ]
     end
 end
 
 function get_NumFreq(
-    setting::Vector{
-        NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}
+    NamedTuple{
+        (:u, :mode, :bandwidths, :bases),
+        Tuple{Vector{Int},Module,Vector{Int},Vector{String}},
     },
 )::Int
     if setting[1].mode == CWWTtools
@@ -153,18 +195,18 @@ function get_NumFreq(
             if bandwidths == []
                 return 1
             elseif length(bandwidths) == 1
-                return 2^(bandwidths[1]+1)-1
+                return 2^(bandwidths[1] + 1) - 1
             elseif length(bandwidths) == 2
-                return 2^(bandwidths[1]+1)*bandwidths[1]+1
+                return 2^(bandwidths[1] + 1) * bandwidths[1] + 1
             elseif length(bandwidths) == 3
                 n = bandwidths[1]
-                return 2^n*n^2+2^n*n+2^(n+1)-1
+                return 2^n * n^2 + 2^n * n + 2^(n + 1) - 1
             else
                 d = length(bandwidths)
                 n = bandwidths[1]
                 tmp = 0
-                for i =0:n
-                    tmp += 2^i*binomial(i+d-1,d-1)
+                for i = 0:n
+                    tmp += 2^i * binomial(i + d - 1, d - 1)
                 end
                 return s
             end
@@ -176,8 +218,9 @@ function get_NumFreq(
 end
 
 function get_IndexSet(
-    setting::Vector{
-        NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}
+    NamedTuple{
+        (:u, :mode, :bandwidths, :bases),
+        Tuple{Vector{Int},Module,Vector{Int},Vector{String}},
     },
     d::Int,
 )::Matrix{Int}

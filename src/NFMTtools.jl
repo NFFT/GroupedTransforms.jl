@@ -3,7 +3,7 @@ module NFMTtools
 using LinearMaps
 using NFFT3
 
-BASES = Dict("exp"=>0,"cos"=>1,"alg"=>2)
+BASES = Dict("exp" => 0, "cos" => 1, "alg" => 2)
 
 """
 `N = datalength(bandwidths)`
@@ -28,17 +28,22 @@ end
 # Output:
  * `freq::Array{Int}` ... all frequencies of the full cube without any vector having a zero entry
 """
-function nfmt_index_set_without_zeros(bandwidths::Vector{Int}, basis_vect::Vector{String})::Array{Int}
+function nfmt_index_set_without_zeros(
+    bandwidths::Vector{Int},
+    basis_vect::Vector{String},
+)::Array{Int}
     d = length(bandwidths)
     d == 0 && return [0]
-    d == 1 && BASES[basis_vect[1]]>0 && return collect([1:1; 2:bandwidths[1]-1])
-    d == 1 && BASES[basis_vect[1]]==0 && return collect([-bandwidths[1]÷2:-1; 1:bandwidths[1]÷2-1])
+    d == 1 && BASES[basis_vect[1]] > 0 && return collect([1:1; 2:bandwidths[1]-1])
+    d == 1 &&
+        BASES[basis_vect[1]] == 0 &&
+        return collect([-bandwidths[1]÷2:-1; 1:bandwidths[1]÷2-1])
 
     bandwidths = reverse(bandwidths)
     basis_vect = reverse(basis_vect)
     tmp = Vector{Vector{Int64}}()
     for (idx, s) in enumerate(basis_vect)
-        if BASES[s]>0
+        if BASES[s] > 0
             append!(tmp, [[1:1; 2:bandwidths[idx]-1]])
         else
             append!(tmp, [[-bandwidths[idx]÷2:-1; 1:bandwidths[idx]÷2-1]])
@@ -66,14 +71,16 @@ end
 function nfmt_index_set(bandwidths::Vector{Int}, basis_vect::Vector{String})::Array{Int}
     d = length(bandwidths)
     d == 0 && return [0]
-    d == 1 && BASES[basis_vect[1]]>0 && return collect([0:0; 1:bandwidths[1]-1])
-    d == 1 && BASES[basis_vect[1]]==0 && return collect([-bandwidths[1]÷2:0; 1:bandwidths[1]÷2-1])
+    d == 1 && BASES[basis_vect[1]] > 0 && return collect([0:0; 1:bandwidths[1]-1])
+    d == 1 &&
+        BASES[basis_vect[1]] == 0 &&
+        return collect([-bandwidths[1]÷2:0; 1:bandwidths[1]÷2-1])
 
     bandwidths = reverse(bandwidths)
     basis_vect = reverse(basis_vect)
     tmp = Vector{Vector{Int64}}()
     for i = range(1,d)
-        if BASES[basis_vect[i]]>0
+        if BASES[basis_vect[i]] > 0
             append!(tmp, [[0:0; 1:bandwidths[i]-1]])
         else
             append!(tmp, [[-bandwidths[i]÷2:0; 1:bandwidths[i]÷2-1]])
@@ -119,7 +126,11 @@ end
 # Output:
  * `F::LinearMap{Float64}` ... Linear map of the Fourier-transform implemented by the NFCT
 """
-function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, basis_vect::Vector{String})::LinearMap
+function get_transform(
+    bandwidths::Vector{Int},
+    X::Array{Float64},
+    basis_vect::Vector{String},
+)::LinearMap
     if size(X, 1) == 1
         X = vec(X)
         d = 1
@@ -136,7 +147,7 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, basis_vect::V
 
     b = copy(bandwidths)
     for (idx, s) in enumerate(basis_vect)
-        if (BASES[s]>0)
+        if (BASES[s] > 0)
             b[idx] *= 2
         end
     end
@@ -163,19 +174,23 @@ function get_transform(bandwidths::Vector{Int}, X::Array{Float64}, basis_vect::V
     return LinearMap{ComplexF64}(trafo, adjoint, M, N)
 end
 
-function get_phi(x::Vector{Float64}, k::Vector{Int64}, basis_vect::Vector{String})::ComplexF64
+function get_phi(
+    x::Vector{Float64},
+    k::Vector{Int64},
+    basis_vect::Vector{String},
+)::ComplexF64
     p = 1
     for (idx, s) in enumerate(basis_vect)
         if (BASES[s] == 1)
             if k[idx] ≠ 0
                 p *= sqrt(2.0) * cos(pi * k[idx] * x[idx])
             end
-        elseif (BASES[s]==2)
+        elseif (BASES[s] == 2)
             if k[idx] ≠ 0
-                p *= sqrt(2.0)*cos(k[idx]*acos(2*x[idx]-1))
+                p *= sqrt(2.0) * cos(k[idx] * acos(2 * x[idx] - 1))
             end
         else
-            p *= exp(-2.0*pi*im*k[idx]*x[idx])
+            p *= exp(-2.0 * pi * im * k[idx] * x[idx])
         end
     end
     return p
@@ -192,7 +207,11 @@ end
 # Output:
  * `F::Array{ComplexF64}` ... Matrix of the Fourier-transform
 """
-function get_matrix(bandwidths::Vector{Int}, X::Array{Float64}, basis_vect::Vector{String})::Array{ComplexF64}
+function get_matrix(
+    bandwidths::Vector{Int},
+    X::Array{Float64},
+    basis_vect::Vector{String},
+)::Array{ComplexF64}
     if size(X, 1) == 1
         X = vec(X)
         d = 1
@@ -207,13 +226,18 @@ function get_matrix(bandwidths::Vector{Int}, X::Array{Float64}, basis_vect::Vect
 
     if d == 1
         freq = nfmt_index_set_without_zeros(bandwidths, basis_vect)
-        F_direct = [get_phi(append!(Vector{Float64}(),x), append!(Vector{Int}(),n), basis_vect) for x in vec(X), n in freq]
+        F_direct = [
+            get_phi(append!(Vector{Float64}(), x), append!(Vector{Int}(), n), basis_vect) for x in vec(X), n in freq
+        ]
     else
         freq = nfmt_index_set_without_zeros(bandwidths, basis_vect)
-        F_direct = [get_phi(Vector(x), Vector(n), basis_vect) for x in eachcol(X), n in eachcol(freq)]
+        F_direct = [
+            get_phi(Vector(x), Vector(n), basis_vect) for x in eachcol(X),
+            n in eachcol(freq)
+        ]
     end
 
     return F_direct
-end 
+end
 
 end
