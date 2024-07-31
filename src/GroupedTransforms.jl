@@ -186,7 +186,10 @@ end
 
 function get_NumFreq(
     setting::Vector{
-        NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}},
+        NamedTuple{
+                (:u, :mode, :bandwidths, :bases),
+                Tuple{Vector{Int},Module,Vector{Int},Vector{String}},
+        },
     },
 )::Int
     if setting[1].mode == CWWTtools
@@ -218,7 +221,10 @@ end
 
 function get_IndexSet(
     setting::Vector{
-        NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}},
+        NamedTuple{
+            (:u, :mode, :bandwidths, :bases),
+            Tuple{Vector{Int},Module,Vector{Int},Vector{String}},
+        },
     },
     d::Int,
 )::Matrix{Int}

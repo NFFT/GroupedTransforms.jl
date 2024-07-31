@@ -32,7 +32,8 @@ struct GroupedCoefficientsComplex <: GroupedCoefficients
         setting,
         data::Union{Vector{ComplexF64},Nothing} = nothing,
     )
-        N = try sum(s -> s[:mode].datalength(s[:bandwidths]), setting)
+        N = try 
+            sum(s -> s[:mode].datalength(s[:bandwidths]), setting)
         catch
             error("The mode is not supportet yet or does not have the function datalength.")
         end
