@@ -73,22 +73,38 @@ mutable struct GroupedTransform
             end
         
         elseif system == "mixed"
-            if sum(getindex.([NFMTtools.BASES],basis_vect).>0)>0 
-                if (minimum(X[getindex.([NFMTtools.BASES],basis_vect).>0,:]) < 0) || (maximum(X[getindex.([NFMTtools.BASES],basis_vect).>0,:]) > 1)
-                    error("Nodes must be between 0 and 1 for cosine or Chebyshev dimensions.")
+            if sum(getindex.([NFMTtools.BASES], basis_vect) .> 0) > 0
+                if (minimum(X[getindex.([NFMTtools.BASES], basis_vect).>0, :]) < 0) ||
+                   (maximum(X[getindex.([NFMTtools.BASES], basis_vect).>0, :]) > 1)
+                    error(
+                        "Nodes must be between 0 and 1 for cosine or Chebyshev dimensions.",
+                    )
                 end
             end
-            if sum(.!(getindex.([NFMTtools.BASES],basis_vect).>0))>0 
-                if (minimum(X[(.!(getindex.([NFMTtools.BASES],basis_vect).>0)),:]) < -0.5) || (maximum(X[(.!(getindex.([NFMTtools.BASES],basis_vect).>0)),:]) > 0.5)
-                    error("Nodes must be between -0.5 and 0.5 for exponentional dimensions.")
+            if sum(.!(getindex.([NFMTtools.BASES], basis_vect) .> 0)) > 0
+                if (
+                    minimum(X[(.!(getindex.([NFMTtools.BASES], basis_vect) .> 0)), :]) <
+                    -0.5
+                ) || (
+                    maximum(X[(.!(getindex.([NFMTtools.BASES], basis_vect) .> 0)), :]) >
+                    0.5
+                )
+                    error(
+                        "Nodes must be between -0.5 and 0.5 for exponentional dimensions.",
+                    )
                 end
             end
         end
-        if (system =="chui1" || system =="chui2"||system =="chui3"||system =="chui4")
+        if (
+            system == "chui1" ||
+            system == "chui2" ||
+            system == "chui3" ||
+            system == "chui4"
+        )
             fastmult = true
         end
         if fastmult
-            matrix = Matrix{Number}(undef,1,1)
+            matrix = Matrix{Number}(undef, 1, 1)
             transforms = Vector{LinearMap{<:Number}}(undef, length(setting))
 
             for (idx, s) in enumerate(setting)
@@ -110,13 +126,18 @@ mutable struct GroupedTransform
             transforms = Vector{Tuple{Int64,Int64}}()
             if system == "chui1" || system == "chui2"  || system == "chui3"||system == "chui4"
 
-                error("Direct computation with full matrix not supported for wavelet basis.")
+                error(
+                    "Direct computation with full matrix not supported for wavelet basis.",
+                )
             elseif system == "mixed"
                 s1 = setting[1]
                 matrix = s1[:mode].get_matrix(s1[:bandwidths], X[s1[:u], :], s1[:bases])
                 for (idx, s) in enumerate(setting)
                     idx == 1 && continue
-                    matrix = hcat(matrix, s[:mode].get_matrix(s[:bandwidths], X[s[:u], :], s[:bases]))
+                    matrix = hcat(
+                        matrix,
+                        s[:mode].get_matrix(s[:bandwidths], X[s[:u], :], s[:bases]),
+                    )
                 end
             else
                 s1 = setting[1]
@@ -180,7 +201,7 @@ function Base.:*(F::GroupedTransform, fhat::GroupedCoefficients)::Vector{<:Numbe
     if F.fastmult
         f = Vector{Task}(undef, length(F.transforms))
         for i in eachindex(F.transforms)
-            f[i] = Threads.@spawn (F.transforms[i]) * (fhat[F.setting[i][:u]]) 
+            f[i] = Threads.@spawn (F.transforms[i]) * (fhat[F.setting[i][:u]])
         end
         #println(length(F.transforms))
         #return Folds.mapreduce(i -> (F.transforms[i]) * (fhat[F.setting[i][:u]]), +, 1:length(F.transforms))
@@ -248,15 +269,22 @@ This function returns the actual matrix of the transformation. This is not avail
 """
 
 function get_matrix(F::GroupedTransform)::Matrix{<:Number}
-    if F.system == "chui1" || F.system == "chui2"  || F.system == "chui3"||F.system == "chui4"
-
+    if (
+        F.system == "chui1" ||
+        F.system == "chui2" ||
+        F.system == "chui3" ||
+        F.system == "chui4"
+    )
         error("Direct computation with full matrix not supported for wavelet basis.")
     elseif F.system == "mixed"
         s1 = F.setting[1]
         F_direct = s1[:mode].get_matrix(s1[:bandwidths], F.X[s1[:u], :], s1[:bases])
         for (idx, s) in enumerate(F.setting)
             idx == 1 && continue
-            F_direct = hcat(F_direct, s[:mode].get_matrix(s[:bandwidths], F.X[s[:u], :], s[:bases]))
+            F_direct = hcat(
+                F_direct,
+                s[:mode].get_matrix(s[:bandwidths], F.X[s[:u], :], s[:bases]),
+            )
         end
     else
         s1 = F.setting[1]

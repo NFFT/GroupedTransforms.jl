@@ -79,7 +79,7 @@ function nfmt_index_set(bandwidths::Vector{Int}, basis_vect::Vector{String})::Ar
     bandwidths = reverse(bandwidths)
     basis_vect = reverse(basis_vect)
     tmp = Vector{Vector{Int64}}()
-    for i = range(1,d)
+    for i in range(1, d)
         if BASES[basis_vect[i]] > 0
             append!(tmp, [[0:0; 1:bandwidths[i]-1]])
         else

@@ -46,12 +46,12 @@ function get_setting(
     ds::Int,
     N::Vector{Int},
     basis_vect::Vector{String} = Vector{String}([]),
-    )::Vector{
-        NamedTuple{
-            (:u, :mode, :bandwidths, :bases),
-            Tuple{Vector{Int},Module,Vector{Int},Vector{String}},
-        },
-    }
+)::Vector{
+    NamedTuple{
+        (:u, :mode, :bandwidths, :bases),
+        Tuple{Vector{Int},Module,Vector{Int},Vector{String}},
+    },
+}
     if !haskey(systems, system)
         error("System not found.")
     end
@@ -75,7 +75,7 @@ function get_setting(
                 bandwidths = bandwidths[idx],
                 bases = basis_vect[U[idx]],
             ) for idx = 1:length(U)
-        ]     
+        ]
     else
         return [
             (u = U[idx], mode = systems[system], bandwidths = bandwidths[idx], bases = [])
@@ -89,12 +89,12 @@ function get_setting(
     U::Vector{Vector{Int}},
     N::Vector{Int},
     basis_vect::Vector{String} = Vector{String}([]),
-    )::Vector{
-        NamedTuple{
-            (:u, :mode, :bandwidths, :bases),
-            Tuple{Vector{Int},Module,Vector{Int},Vector{String}},
-        },
-    }
+)::Vector{
+    NamedTuple{
+        (:u, :mode, :bandwidths, :bases),
+        Tuple{Vector{Int},Module,Vector{Int},Vector{String}},
+    },
+}
     if !haskey(systems, system)
         error("System not found.")
     end
@@ -125,7 +125,7 @@ function get_setting(
                 bandwidths = bws[idx],
                 bases = basis_vect[U[idx]],
             ) for idx = 1:length(U)
-        ]   
+        ]
     else
         return [
             (u = U[idx], mode = systems[system], bandwidths = bws[idx], bases = []) for
@@ -139,12 +139,12 @@ function get_setting(
     U::Vector{Vector{Int}},
     N::Vector{Vector{Int}},
     basis_vect::Vector{String} = Vector{String}([]),
-    )::Vector{
-        NamedTuple{
-            (:u, :mode, :bandwidths, :bases),
-            Tuple{Vector{Int},Module,Vector{Int},Vector{String}},
-        },
-    }
+)::Vector{
+    NamedTuple{
+        (:u, :mode, :bandwidths, :bases),
+        Tuple{Vector{Int},Module,Vector{Int},Vector{String}},
+    },
+}
     if !haskey(systems, system)
         error("System not found.")
     end
@@ -175,7 +175,7 @@ function get_setting(
                 bandwidths = bws[idx],
                 bases = basis_vect[U[idx]],
             ) for idx = 1:length(U)
-        ]   
+        ]
     else
         return [
             (u = U[idx], mode = systems[system], bandwidths = bws[idx], bases = []) for
@@ -185,9 +185,8 @@ function get_setting(
 end
 
 function get_NumFreq(
-    NamedTuple{
-        (:u, :mode, :bandwidths, :bases),
-        Tuple{Vector{Int},Module,Vector{Int},Vector{String}},
+    setting::Vector{
+        NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}},
     },
 )::Int
     if setting[1].mode == CWWTtools
@@ -218,9 +217,8 @@ function get_NumFreq(
 end
 
 function get_IndexSet(
-    NamedTuple{
-        (:u, :mode, :bandwidths, :bases),
-        Tuple{Vector{Int},Module,Vector{Int},Vector{String}},
+    setting::Vector{
+        NamedTuple{(:u, :mode, :bandwidths),Tuple{Vector{Int},Module,Vector{Int}}},
     },
     d::Int,
 )::Matrix{Int}
