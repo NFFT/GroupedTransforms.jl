@@ -102,7 +102,7 @@ function GroupedCoefficients(
 )
     if (setting[1][:mode] == NFFTtools || setting[1][:mode] == NFMTtools)
         return GroupedCoefficientsComplex(setting, data)
-    elseif (setting[1][:mode] == NFCTtools  || setting[1][:mode] == CWWTtools )
+    elseif (setting[1][:mode] == NFCTtools || setting[1][:mode] == CWWTtools)
         return GroupedCoefficientsReal(setting, data)
     end
 end
