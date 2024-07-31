@@ -32,18 +32,17 @@ struct GroupedCoefficientsComplex <: GroupedCoefficients
         setting,
         data::Union{Vector{ComplexF64},Nothing} = nothing,
     )
-        try
-            N = sum(s -> s[:mode].datalength(s[:bandwidths]), setting)
-			if isnothing(data)
-                data = zeros(ComplexF64, N)
-            end
-            if length(data) != N
-                error("the supplied data vector has the wrong length.")
-            end
-            return new(setting, data)
+        N = try sum(s -> s[:mode].datalength(s[:bandwidths]), setting)
         catch
             error("The mode is not supportet yet or does not have the function datalength.")
         end
+        if isnothing(data)
+            data = zeros(ComplexF64, N)
+        end
+        if length(data) != N
+            error("the supplied data vector has the wrong length.")
+        end
+        return new(setting, data)
     end
 end
 
@@ -96,7 +95,10 @@ end
 
 function GroupedCoefficients(
     setting::Vector{
-        NamedTuple{(:u, :mode, :bandwidths, :bases),Tuple{Vector{Int},Module,Vector{Int},Vector{String}}}
+        NamedTuple{
+            (:u, :mode, :bandwidths, :bases),
+            Tuple{Vector{Int},Module,Vector{Int},Vector{String}},
+        },
     },
     data::Union{Vector{ComplexF64},Vector{Float64},Nothing} = nothing,
 )

@@ -108,24 +108,30 @@ mutable struct GroupedTransform
             transforms = Vector{LinearMap{<:Number}}(undef, length(setting))
 
             for (idx, s) in enumerate(setting)
-                if system =="chui1"
+                if system == "chui1"
                     transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], 1)
-                elseif system =="chui2"
+                elseif system == "chui2"
                     transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], 2)
-                elseif system =="chui3"
+                elseif system == "chui3"
                     transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], 3)
-                elseif system =="chui4"
+                elseif system == "chui4"
                     transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], 4)
                 elseif system == "mixed"
-                    transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :], s[:bases])
+                    transforms[idx] =
+                        s[:mode].get_transform(s[:bandwidths], X[s[:u], :], s[:bases])
+
                 else
-                    transforms[idx] = s[:mode].get_transform( s[:bandwidths], X[s[:u], :])
+                    transforms[idx] = s[:mode].get_transform(s[:bandwidths], X[s[:u], :])
                 end
             end
         else
             transforms = Vector{Tuple{Int64,Int64}}()
-            if system == "chui1" || system == "chui2"  || system == "chui3"||system == "chui4"
-
+            if (
+                system == "chui1" ||
+                system == "chui2" ||
+                system == "chui3" ||
+                system == "chui4"
+            )
                 error(
                     "Direct computation with full matrix not supported for wavelet basis.",
                 )
